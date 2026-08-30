@@ -1,0 +1,82 @@
+@import url('https://fonts.googleapis.com/css2?family=Economica:ital,wght@0,400;0,700;1,400;1,700&family=Space+Grotesk:wght@300..700&display=swap');
+@import 'tailwindcss';
+
+@source "../node_modules/@asappy/web-shared-ui/src";
+
+:root {
+  color: var(--color-mist-200);
+  background: var(--color-mist-950);
+  font-family: 'Space Grotesk', sans-serif;
+  /* font-synthesis: none; */
+  text-rendering: optimizeLegibility;
+}
+@theme {
+  --color-primary-100: var(--color-mist-100);
+  --color-primary-200: var(--color-mist-200);
+  --color-primary-300: var(--color-mist-300);
+  --color-primary-400: var(--color-mist-400);
+  --color-primary-500: var(--color-mist-500);
+  --color-primary-600: var(--color-mist-600);
+  --color-primary-700: var(--color-mist-700);
+  --color-primary-800: var(--color-mist-800);
+  --color-primary-900: var(--color-mist-900);
+
+  --color-secondary-100: color-mix(in oklch, var(--color-neutral-100), 40% var(--color-green-100));
+  --color-secondary-200: color-mix(in oklch, var(--color-neutral-200), 40% var(--color-green-200));
+  --color-secondary-300: color-mix(in oklch, var(--color-neutral-300), 40% var(--color-green-300));
+  --color-secondary-400: color-mix(in oklch, var(--color-neutral-400), 40% var(--color-green-400));
+  --color-secondary-500: color-mix(in oklch, var(--color-neutral-500), 40% var(--color-green-500));
+  --color-secondary-600: color-mix(in oklch, var(--color-neutral-600), 40% var(--color-green-600));
+  --color-secondary-700: color-mix(in oklch, var(--color-neutral-700), 40% var(--color-green-700));
+  --color-secondary-800: color-mix(in oklch, var(--color-neutral-800), 40% var(--color-green-800));
+  --color-secondary-900: color-mix(in oklch, var(--color-neutral-900), 40% var(--color-green-900));
+
+  --color-accent-100: var(--color-green-100);
+  --color-accent-200: var(--color-green-200);
+  --color-accent-300: var(--color-green-300);
+  --color-accent-400: var(--color-green-400);
+  --color-accent-500: var(--color-green-500);
+  --color-accent-600: var(--color-green-600);
+  --color-accent-700: var(--color-green-700);
+  --color-accent-800: var(--color-green-800);
+  --color-accent-900: var(--color-green-900);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+  /* background: #000; */
+}
+
+
+/* a {
+  color: inherit;
+} */
+
+/* @keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(1rem); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in {
+  animation: fadeInUp 800ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  opacity: 0;
+}
+
+.delay-1 { animation-delay: 0.1s; }
+.delay-1-1 { animation-delay: 0.5s; }
+.delay-1-2 { animation-delay: 0.7s; }
+.delay-2 { animation-delay: 0.9s; }
+.delay-3 { animation-delay: 1.2s; }
+
+@media (prefers-reduced-motion: reduce) {
+  .fade-in {
+    animation: none;
+    opacity: 1;
+  }
+} */

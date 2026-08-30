@@ -1,0 +1,230 @@
+[
+    {
+        "link":"minichem",
+        "name":"MiniChem",
+        "description":"Market research for a functional chemical resale company focused on students.",
+        "longDescription":"Market research for a functional chemical resale company focused on students. Market research for a functional chemical resale company focused on students.Market research for a functional chemical resale company focused on students.",
+        "author":"kevin sapp",
+        "publishStamp":[9,2,2026],
+        "visible":true,
+        "requiresScreen":true,
+        "screen":[
+            {
+                "id":"q_1",
+                "question":"Do you live in the united states?",
+                "type":"radio",
+                "options":{
+                    "t":"yes",
+                    "f":"no"
+                },
+                "allowed":["yes"]
+            },
+            {
+                "id":"q_2",
+                "question":"If yes, what state do you live in?",
+                "type":"dropdown",
+                "options":{
+                    "al":"Alabama",
+                    "ak":"Alaska",
+                    "az":"Arizona",
+                    "ar":"Arkansas",
+                    "ca":"California",
+                    "co":"Colorado",
+                    "ct":"Connecticut",
+                    "de":"Delaware",
+                    "fl":"Florida",
+                    "ga":"Georgia",
+                    "hi":"Hawaii",
+                    "id":"Idaho",
+                    "il":"Illinois",
+                    "in":"Indiana",
+                    "ia":"Iowa",
+                    "ks":"Kansas",
+                    "ky":"Kentucky",
+                    "la":"Louisiana",
+                    "me":"Maine",
+                    "md":"Maryland",
+                    "ma":"Massachusetts",
+                    "mi":"Michigan",
+                    "mn":"Minnesota",
+                    "ms":"Mississippi",
+                    "mo":"Missouri",
+                    "mt":"Montana",
+                    "ne":"Nebraska",
+                    "nv":"Nevada",
+                    "nh":"New Hampshire",
+                    "nj":"New Jersey",
+                    "nm":"New Mexico",
+                    "ny":"New York",
+                    "nc":"North Carolina",
+                    "nd":"North Dakota",
+                    "oh":"Ohio",
+                    "ok":"Oklahoma",
+                    "or":"Oregon",
+                    "pa":"Pennsylvania",
+                    "ri":"Rhode Island",
+                    "sc":"South Carolina",
+                    "sd":"South Dakota",
+                    "tn":"Tennessee",
+                    "tx":"Texas",
+                    "ut":"Utah",
+                    "vt":"Vermont",
+                    "va":"Virginia",
+                    "wa":"Washington",
+                    "wv":"West Virginia",
+                    "wi":"Wisconsin",
+                    "wy":"Wyoming"
+                },
+                "allowed":["id","fl"],
+                "dependsOn":{
+                    "questionIndex":0,
+                    "value":"yes"
+                }
+
+            },
+            {
+                "id":"q_3",
+                "question":"If Idaho, what city do you live in?",
+                "type":"text",
+                "dependsOn":{
+                    "questionIndex":1,
+                    "value":"id"
+                }
+
+            },
+            {
+                "id":"q_4",
+                "question":"If Florida, what city do you live in?",
+                "type":"text",
+                "dependsOn":{
+                    "questionIndex":1,
+                    "value":"fl"
+                }
+
+            }
+        ],
+        "allowedSubmits":1,
+        "questions":[
+            {
+                "id":"q_6",
+                "question":"How often do you clean your apartment?",
+                "type":"customMulti",
+                "subtypeM":"freq1"
+            },
+            {
+                "id":"q_7",
+                "question":"How often do you clean your apartment?",
+                "type":"customMulti",
+                "subtypeM":"freq2"
+            }
+        ]
+    },
+    {
+        "link":"MiniChem222",
+        "name":"MiniChem222",
+        "description":"Market research for a functional chemical resale company focused on students.",
+        "longDescription":"Market research for a functional chemical resale company focused on students.",
+        "author":"kevin sapp",
+        "publishStamp":[9,2,2026],
+        "visible":false,
+        "requiresScreen":false,
+        "allowedSubmits":1,
+        "questions":[
+            {
+                "id":"q_8",
+                "question":"How often do you clean your apartment?",
+                "type":"freq-1"
+            }
+        ]
+    },
+    {
+        "link":"hi1",
+        "name":"hi1",
+        "description":"Market research for a functional chemical resale company focused on students.",
+        "longDescription":"Market research for a functional chemical resale company focused on students.",
+        "author":"yours truly",
+        "publishStamp":[9,2,2026],
+        "visible":true,
+        "requiresScreen":false,
+        "allowedSubmits":1,
+        "questions":[
+            {
+                "id":"q_9",
+                "question":"How often do you clean your apartment?",
+                "type":"freq-1"
+            }
+        ]
+    },
+    {
+        "link":"hi2",
+        "name":"hi2",
+        "description":"Market research for a functional chemical resale company focused on students.",
+        "longDescription":"Market research for a functional chemical resale company focused on students.",
+        "author":"yours truly",
+        "publishStamp":[9,2,2026],
+        "visible":true,
+        "requiresScreen":false,
+        "allowedSubmits":1,
+        "questions":[
+            {
+                "id":"q_10",
+                "question":"How often do you clean your apartment?",
+                "type":"freq-1"
+            }
+        ]
+    },
+    {
+        "link":"hi2.2",
+        "name":"hi2.2",
+        "description":"Market research for a functional chemical resale company focused on students.",
+        "longDescription":"Market research for a functional chemical resale company focused on students.",
+        "author":"yours truly",
+        "publishStamp":[9,2,2026],
+        "visible":true,
+        "requiresScreen":false,
+        "allowedSubmits":1,
+        "questions":[
+            {
+                "id":"q_11",
+                "question":"How often do you clean your apartment?",
+                "type":"freq-1"
+            }
+        ]
+    },
+    {
+        "link":"hi2.3",
+        "name":"hi2.3",
+        "description":"Market research for a functional chemical resale company focused on students.",
+        "longDescription":"Market research for a functional chemical resale company focused on students.",
+        "author":"yours truly",
+        "publishStamp":[9,2,2026],
+        "visible":true,
+        "requiresScreen":false,
+        "allowedSubmits":1,
+        "questions":[
+            {
+                "id":"q_12",
+                "question":"How often do you clean your apartment?",
+                "type":"freq-1"
+            }
+        ]
+    },
+    {
+        "link":"hi3",
+        "name":"hi3",
+        "description":"Market research for a functional chemical resale company focused on students.",
+        "longDescription":"Market research for a functional chemical resale company focused on students.",
+        "author":"yours truly",
+        "publishStamp":[9,2,2026],
+        "visible":true,
+        "requiresScreen":false,
+        "allowedSubmits":1,
+        "questions":[
+            {
+                "id":"q_13",
+                "question":"How often do you clean your apartment?",
+                "type":"freq-1"
+            }
+        ]
+    }
+]
