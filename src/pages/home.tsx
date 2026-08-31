@@ -1,6 +1,9 @@
 import allSurveys from '../assets/surveys.json';
 import {Link} from 'react-router-dom'
 import { ArrowUpRight, ArrowLeft, CalendarDays } from 'lucide-react';
+import UserProfile from "../lib/User"
+
+export const USER = UserProfile.initLoad()
 
 export default function Home() {
     const card1 = "relative rounded-2xl shadow-sm border flex flex-col gap-3 border-primary-500 bg-primary-700/10 p-6 aspect-5/3 group hover:bg-primary-700/30"

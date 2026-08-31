@@ -10,7 +10,7 @@
         "requiresScreen":true,
         "screen":[
             {
-                "id":"q_1",
+                "id":"q_US",
                 "question":"Do you live in the united states?",
                 "type":"radio",
                 "options":{
@@ -20,7 +20,7 @@
                 "allowed":["yes"]
             },
             {
-                "id":"q_2",
+                "id":"q_IDFL",
                 "question":"If yes, what state do you live in?",
                 "type":"dropdown",
                 "options":{
@@ -81,40 +81,20 @@
                     "value":"yes"
                 }
 
-            },
-            {
-                "id":"q_3",
-                "question":"If Idaho, what city do you live in?",
-                "type":"text",
-                "dependsOn":{
-                    "questionIndex":1,
-                    "value":"id"
-                }
-
-            },
-            {
-                "id":"q_4",
-                "question":"If Florida, what city do you live in?",
-                "type":"text",
-                "dependsOn":{
-                    "questionIndex":1,
-                    "value":"fl"
-                }
-
             }
         ],
-        "allowedSubmits":1,
+        "allowedSubmits":2,
         "questions":[
             {
-                "id":"q_6",
+                "id":"q_often",
                 "question":"How often do you clean your apartment?",
-                "type":"customMulti",
+                "type":"multi",
                 "subtypeM":"freq1"
             },
             {
                 "id":"q_7",
                 "question":"How often do you clean your apartment?",
-                "type":"customMulti",
+                "type":"multi",
                 "subtypeM":"freq2"
             }
         ]
