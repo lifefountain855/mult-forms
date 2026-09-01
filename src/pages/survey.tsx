@@ -67,61 +67,86 @@ export default function Survey({survey}:any){
     const beginButton="flex p-8 aspect-5/3 rounded-2xl items-center justify-center border-primary-600 bg-primary-700/20 hover:bg-green-500/50"
     const endButton="absolute top-5 right-5 flex p-2 px-4 sm:px-8 lg:py-3 lg:px-12 rounded-2xl items-center justify-center border-primary-600 bg-primary-700/20 hover:bg-red-500/50"
 
-    return (
-        <div className="relative flex flex-col gap-4 pt-15 items-center justify-center py-10 px-8 sm:px-15 md:px-25">
-            <title>{`Asappy Surveys - ${name}`}</title>
-            {started && (<button className={endButton} onClick={()=> setStart(false)}>Exit</button>)}
-            <Link className="flex flex-row group absolute top-5 left-5 gap-2 justify-center items-center" to='/'>
-                <ArrowLeft className="size-6 md:size-7 text-primary-400 transition duration-200 group-hover:-translate-x-2 group-hover:text-accent-300" aria-hidden="true" />
-                <span className="invisible sm:visible text-sm sm:text-base md:text-lg">Home</span>
-            </Link>
-            <span className="text-3xl sm:text-5xl md:text-6xl lg:text-8xl border-b-4 border-accent-300">{name}</span>
-            {!started && !noMoreAttempts && (<p className="text-xs sm:text-sm text-primary-500 italic -mt-3 flex flex-row gap-2">{author} - {publishStamp[0]}/{publishStamp[1]}/{publishStamp[2]}</p>)}
-            {!started && (
-                <span className={`text-${(userSurvey.submitTimes >= allowedSubmits) ? 'red' : 'primary'}-400 -mt-2`}>Allowed submits: {userSurvey.submitTimes}/{allowedSubmits}</span>
+   return (
+    <div className="relative flex flex-col gap-4 pt-15 items-center justify-center py-10 px-8 sm:px-15 md:px-25">
+        <title>{`Asappy Surveys - ${name}`}</title>
+        
+        {started && (
+            <button className={endButton} onClick={() => setStart(false)}>Exit</button>
+        )}
+        
+        <Link className="flex flex-row group absolute top-5 left-5 gap-2 justify-center items-center" to='/'>
+            <ArrowLeft className="size-6 md:size-7 text-primary-400 transition duration-200 group-hover:-translate-x-2 group-hover:text-accent-300" aria-hidden="true" />
+            <span className="invisible sm:visible text-sm sm:text-base md:text-lg">Home</span>
+        </Link>
+        
+        <span className="text-3xl sm:text-5xl md:text-6xl lg:text-8xl border-b-4 border-accent-300">{name}</span>
+        
+        {!started && !noMoreAttempts && (
+            <p className="text-xs sm:text-sm text-primary-500 italic -mt-3 flex flex-row gap-2">
+                {author} - {publishStamp.join('/')}
+            </p>
+        )}
+        
+        {!started && (
+            <span className={`text-${userSurvey.submitTimes >= allowedSubmits ? 'red' : 'primary'}-400 -mt-2`}>
+                Allowed submits: {userSurvey.submitTimes}/{allowedSubmits}
+            </span>
+        )}
+        
+        {!visible && (
+            <span className='text-primary-500 italic'>This is a private survey sent by a link.</span>
+        )}
+        
+        {!started && !noMoreAttempts && (
+            <p className="text-sm md:text-lg text-primary-400 text-center max-w-2xl">{longDescription}</p>
+        )}
+
+        <div className='relative flex flex-col gap-4 items-center justify-center w-full'>
+            {/* Initial Screen Prompt */}
+            {requiresScreen && !started && !submitScreen && !noMoreAttempts && (
+                <>
+                    <span className="text-center">This survey requires screening.</span>
+                    <button className={beginButton} onClick={handleSetStart}>Begin</button>
+                </>
             )}
-            {!visible && (
-                <span className='text-primary-500 italic'>This is a private survey sent by a link.</span>
+
+            {noMoreAttempts && (
+                <span className="text-center text-red-400">You've submitted as many times as you can.</span>
             )}
-            {!started && !noMoreAttempts && (<p className="text-sm md:text-lg text-primary-400 text-center max-w-2xl">{longDescription}</p>)}
-            { requiresScreen ? (
-                <div className='relative flex flex-col gap-4 items-center justify-center w-full'>
-                    {!started && !submitScreen && !noMoreAttempts && (<span className="text-center">This survey requires screening.</span>)}
-                    {!started && !submitScreen && !noMoreAttempts && (<button className={beginButton} onClick={handleSetStart}>Begin</button>)}
-                    {noMoreAttempts && (<span className="text-center text-red-400">You've submitted as many times as you can.</span>)}
-                    <div className="flex flex-col gap-12 p-2 w-full justify-center items-center">
-                        {started && !submitScreen && (<FormForm schema={screen} onSubmit={handleScreenSubmit} isScreen={true} />)}
-                        {!passedScreen && submitScreen && !submitSurvey && (
-                            <div className="flex justify-center items-center">
-                                <h1 className='text-red-200 text-lg sm:text-2xl'>I'm sorry. You are not eligible for this survey. Try another!</h1>
-                            </div>
+
+            <div className="flex flex-col gap-12 p-2 w-full justify-center items-center">
+                {/* Screening Form */}
+                {requiresScreen && started && !submitScreen && (
+                    <FormForm schema={screen} onSubmit={handleScreenSubmit} isScreen={true} />
+                )}
+
+                {/* Failed Screening */}
+                {requiresScreen && !passedScreen && submitScreen && !submitSurvey && (
+                    <div className="flex justify-center items-center">
+                        <h1 className='text-red-200 text-lg sm:text-2xl'>I'm sorry. You are not eligible for this survey. Try another!</h1>
+                    </div>
+                )}
+
+                {/* Survey Content (Used when screen is passed OR if no screen is required) */}
+                {(!requiresScreen || (passedScreen && submitScreen)) && (
+                    <div className="flex flex-col justify-center items-center gap-5">
+                        {requiresScreen && !started && !noMoreAttempts && !submitSurvey && (
+                            <h1 className='text-accent-200 text-lg sm:text-2xl'>Great! You're eligible for this survey!!</h1>
                         )}
-                        {passedScreen && submitScreen && (
-                            <div className="flex flex-col justify-center items-center gap-5">
-                                {!started && !noMoreAttempts && !submitSurvey && (<h1 className='text-accent-200 text-lg sm:text-2xl'>Great! You're eligible for this survey!!</h1>)}
-                                {!started && submitSurvey && (
-                                    <h1 className="text-accent-300 text-lg sm:text-2xl">Submit successful!</h1>
-                                )}
-                                {!started && !noMoreAttempts && (<button className={beginButton} onClick={handleSetStart}>Begin</button>)}
-                                {started && (<FormForm schema={questions} onSubmit={handleSurveySubmit} isScreen={false} />)}
-                            </div>
+                        {!started && submitSurvey && (
+                            <h1 className="text-accent-300 text-lg sm:text-2xl">Submit successful!</h1>
+                        )}
+                        {!started && !noMoreAttempts && (
+                            <button className={beginButton} onClick={handleSetStart}>Begin</button>
+                        )}
+                        {started && (
+                            <FormForm schema={questions} onSubmit={handleSurveySubmit} isScreen={false} />
                         )}
                     </div>
-                </div>
-            ) : (
-                <div className='relative flex flex-col gap-4 items-center justify-center w-full'>
-                    {noMoreAttempts && (<span className="text-center text-red-400">You've submitted as many times as you can.</span>)}
-                    <div className="flex flex-col gap-12 p-2 w-full justify-center items-center">
-                            <div className="flex flex-col justify-center items-center gap-5">
-                                {!started && submitSurvey && (
-                                    <h1 className="text-accent-300 text-lg sm:text-2xl">Submit successful!</h1>
-                                )}
-                                {!started && !noMoreAttempts && (<button className={beginButton} onClick={handleSetStart}>Begin</button>)}
-                                {started && (<FormForm schema={questions} onSubmit={handleSurveySubmit} isScreen={false} />)}
-                            </div>
-                    </div>
-                </div>
-            )}
+                )}
+            </div>
         </div>
-    )
+    </div>
+);
 }
