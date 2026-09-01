@@ -1,6 +1,3 @@
-import { range } from 'lit/directives/range.js';
-import React from 'react';
-
 interface Props {
     value:any,
     onChange?:Function,
