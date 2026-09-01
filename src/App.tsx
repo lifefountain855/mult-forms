@@ -41,7 +41,7 @@ function AppRoutes() {
           initial="initial"
           animate="animate"
           exit="exit"
-          transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ duration: 0.4, ease: [0.22, 0.75, 0.36, 1] }}
           className="min-h-screen bg-[var(--color-primary-950)]"
         >
           <Routes location={location}>
