@@ -1,5 +1,6 @@
 import React, { useState, type ChangeEvent, type SubmitEvent } from 'react';
 import SingleRangeSlider from './slider';
+import { motion } from 'motion/react';
 
 export interface FormQuestion {
     id?: string;
@@ -56,6 +57,19 @@ export const customMulti = {
     freq1,
     freq2,
 };
+
+export const questionVariants = {
+    initial: {
+      opacity: 0,
+      y: -20,
+      filter: 'blur(1px)'
+    },
+    animate: {
+      opacity: 1,
+      y: 0,
+      filter: 'blur(0px)'
+    }
+}
 
 export default function FormForm({ schema, onSubmit, isScreen }: DynamicFormProps) {
     // Allows values to be string, number, or string[] for multi-select checkboxes
@@ -178,7 +192,7 @@ export default function FormForm({ schema, onSubmit, isScreen }: DynamicFormProp
                     }
 
                     return (
-                        <div key={fieldName} className="animate-in fade-in duration-150">
+                        <motion.div key={fieldName} variants={questionVariants} initial='initial' animate='animate' transition={{ duration: 0.4, ease: [0.22, 0.75, 0.36, 1] }}>
                             <label htmlFor={fieldName} className="block text-sm font-medium mb-2">
                                 {q.question}
                             </label>
@@ -362,7 +376,7 @@ export default function FormForm({ schema, onSubmit, isScreen }: DynamicFormProp
                             {errors[fieldName] && (
                                 <p className="mt-2 text-xs text-rose-400">{errors[fieldName]}</p>
                             )}
-                        </div>
+                        </motion.div>
                     );
                 })}
 
@@ -370,7 +384,7 @@ export default function FormForm({ schema, onSubmit, isScreen }: DynamicFormProp
                     type="submit"
                     className="w-full py-3 px-4 rounded-lg bg-secondary-600 hover:bg-secondary-500 text-white font-medium transition-colors shadow-sm"
                 >
-                    Submit Form
+                    Submit {isScreen ? 'Screening': 'Survey'}
                 </button>
             </form>
         </div>
