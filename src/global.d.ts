@@ -1,0 +1,1 @@
+declare module 'asappy-web-shared-ui';
