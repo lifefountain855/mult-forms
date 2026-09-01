@@ -12,5 +12,9 @@ export default defineConfig({
   ],
   resolve:{
     "extensions":[".ts",".tsx"]
+  },
+  server:{
+    host:true,
+    allowedHosts:["100.84.239.93"]
   }
 })
