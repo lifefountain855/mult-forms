@@ -2,11 +2,12 @@ import { useEffect, useState } from 'react';
 import { Link, Navigate, useLocation } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { motion } from 'motion/react';
-import FormForm, { type FormSubmitData } from "../components/form"
-import {USER} from "./home"
+import FormForm, { type FormSubmitData } from '../components/form';
+import UserProfile, { type SurveyData } from '../lib/User';
+import { supabase } from '../lib/supabase';
 
 export default function Survey({survey, route}: any){
-    const { link, name, longDescription, author, visible, publishStamp, requiresScreen, allowedSubmits, screen, questions} = survey
+    const { link, name, longDescription, author, visible, publishStamp, requiresScreen, allowedSubmits, screen, questions} = survey;
     const location = useLocation();
     const currentRoute = route ?? (location.pathname.endsWith('/screening') ? 'screening' : 'start');
     const screeningPath = `/${link}/screening`;
@@ -14,50 +15,115 @@ export default function Survey({survey, route}: any){
     const isScreeningRoute = currentRoute === 'screening';
     const isStartRoute = currentRoute === 'start';
 
-    if (!USER.surveyData){
-        USER.surveyData = {}
-    }
-
-    if (USER.surveyData[link] == undefined || null){
-        USER.surveyData[link] = {id:link,submitted:false,submitTimes:0}
-        USER.save()
-    }
-    const userSurvey = USER.surveyData[link]
-
-    const [submitScreen, setSubmitScreen] = useState(userSurvey.submittedScreen || false)
-    const [submitSurvey, setSubmitSurvey] = useState(userSurvey.submitted || false)
-    const [passedScreen, setPassedScreen] = useState(userSurvey.passedScreen || false)
-    const [noMoreAttempts, setNoMoreAttempts] = useState((userSurvey.submitTimes >= allowedSubmits) || false)
+    const [user, setUser] = useState<UserProfile>(new UserProfile());
+    const [authChecked, setAuthChecked] = useState(false);
 
     useEffect(() => {
-        setNoMoreAttempts(userSurvey.submitTimes >= allowedSubmits)
-    }, [allowedSubmits, userSurvey.submitTimes])
+        let isMounted = true;
 
-    const handleScreenSubmit = (data: FormSubmitData) => {
-        console.log('Received payload from form:', data);
-        setSubmitScreen(true)
-        userSurvey.submittedScreen = true;
-        userSurvey.screenData = data;
-        if (data.isFlagged){
-            setPassedScreen(false);
-            userSurvey.passedScreen = false;
-        } else {
-            setPassedScreen(true);
-            userSurvey.passedScreen = true;
-        }
-        USER.save()
+        const refreshUser = async () => {
+            const profile = await UserProfile.initLoad();
+            if (isMounted) {
+                setUser(profile);
+                setAuthChecked(true);
+            }
+        };
+
+        supabase.auth.getSession().then(({ data }) => {
+            if (!isMounted) return;
+            if (data.session) {
+                refreshUser();
+            } else {
+                setUser(new UserProfile());
+                setAuthChecked(true);
+            }
+        });
+
+        const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+            if (!isMounted) return;
+            if (session) {
+                refreshUser();
+            } else {
+                setUser(new UserProfile());
+                setAuthChecked(true);
+            }
+        });
+
+        return () => {
+            isMounted = false;
+            authListener.subscription.unsubscribe();
+        };
+    }, []);
+
+    const surveyState: SurveyData = user.surveyData?.[link] ?? {
+        id: link,
+        submitted: false,
+        submitTimes: 0,
+        submittedScreen: false,
+        passedScreen: false,
+        screenData: {},
+        data: {},
     };
 
-    const handleSurveySubmit = (data: FormSubmitData) => {
-        console.log('Received payload from form:', data);
-        setSubmitSurvey(true);
-        userSurvey.submitted = true
-        userSurvey.submitTimes = userSurvey.submitTimes + 1;
-        userSurvey.data = data.values;
-        USER.save()
-    }
+    const [submitScreen, setSubmitScreen] = useState(surveyState.submittedScreen ?? false);
+    const [submitSurvey, setSubmitSurvey] = useState(surveyState.submitted ?? false);
+    const [passedScreen, setPassedScreen] = useState(surveyState.passedScreen ?? false);
+    const [noMoreAttempts, setNoMoreAttempts] = useState((surveyState.submitTimes >= allowedSubmits) || false);
 
-    const beginButton = "flex p-8 aspect-5/3 rounded-2xl items-center justify-center border-primary-600 bg-primary-700/20"
+    useEffect(() => {
+        setSubmitScreen(surveyState.submittedScreen ?? false);
+        setSubmitSurvey(surveyState.submitted ?? false);
+        setPassedScreen(surveyState.passedScreen ?? false);
+        setNoMoreAttempts((surveyState.submitTimes >= allowedSubmits) || false);
+    }, [allowedSubmits, surveyState, user]);
+
+    const handleScreenSubmit = async (data: FormSubmitData) => {
+        const nextState = {
+            submittedScreen: true,
+            passedScreen: !data.isFlagged,
+            screenData: data.values,
+        };
+
+        const profile = await UserProfile.initLoad();
+        const saved = await profile.saveSurveyState(link, nextState);
+        setUser(new UserProfile(profile.id, profile.admin, {
+            ...(profile.surveyData ?? {}),
+            [link]: saved,
+        }));
+        setSubmitScreen(true);
+        setPassedScreen(!data.isFlagged);
+    };
+
+    const handleSurveySubmit = async (data: FormSubmitData) => {
+        const profile = await UserProfile.initLoad();
+        const currentSurvey = profile.surveyData?.[link] ?? {
+            id: link,
+            submitted: false,
+            submitTimes: 0,
+            submittedScreen: false,
+            passedScreen: false,
+            screenData: {},
+            data: {},
+        };
+
+        const saved = await profile.saveSurveyState(link, {
+            submitted: true,
+            submitTimes: (currentSurvey.submitTimes ?? 0) + 1,
+            data: data.values,
+        });
+
+        setUser(new UserProfile(profile.id, profile.admin, {
+            ...(profile.surveyData ?? {}),
+            [link]: saved,
+        }));
+        setSubmitSurvey(true);
+    };
+
+    const beginButton = "flex p-8 aspect-5/3 rounded-2xl items-center justify-center border-primary-600 bg-primary-700/20";
+
+    if (authChecked && !user.id) {
+        return <Navigate to="/auth" replace />;
+    }
 
     if (requiresScreen && isStartRoute && !noMoreAttempts && (!submitScreen || !passedScreen)) {
         return <Navigate to={screeningPath} replace />;
@@ -87,8 +153,8 @@ export default function Survey({survey, route}: any){
             )}
 
             {!noMoreAttempts && (
-                <span className={`text-${userSurvey.submitTimes >= allowedSubmits ? 'red' : 'primary'}-400 -mt-2`}>
-                    Allowed submits: {userSurvey.submitTimes}/{allowedSubmits}
+                <span className={`text-${surveyState.submitTimes >= allowedSubmits ? 'red' : 'primary'}-400 -mt-2`}>
+                    Allowed submits: {surveyState.submitTimes}/{allowedSubmits}
                 </span>
             )}
 

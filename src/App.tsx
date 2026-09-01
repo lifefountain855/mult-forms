@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import NotFound from './pages/not-found';
 import Survey from './pages/survey';
 import Home from './pages/home';
+import AuthPage from './pages/auth';
 import allSurveys from './assets/surveys.json';
 import { UseFavicon } from 'asappy-web-shared-ui'
 
@@ -47,6 +48,7 @@ function AppRoutes() {
         >
           <Routes location={location}>
             <Route path="/" element={<Home />} />
+            <Route path="/auth" element={<AuthPage />} />
             {allSurveys.filter(survey=>survey.requiresScreen).map((survey) => (
               <Route
                 key={`${survey.link}-screening`}
