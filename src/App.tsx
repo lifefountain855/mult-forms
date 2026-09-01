@@ -9,16 +9,40 @@ import { UseFavicon } from 'asappy-web-shared-ui'
 function AppRoutes() {
   const location = useLocation();
 
+  const isHome = location.pathname === '/';
+
+  // Main Page (/): Enters from top (-y), exits to bottom (+y)
+  // Subpages (*): Enter from bottom (+y), exit to top (-y)
+  const pageVariants = {
+    initial: {
+      opacity: 0,
+      y: isHome ? -80 : 80,
+      filter: 'blur(7px)'
+    },
+    animate: {
+      opacity: 1,
+      y: 0,
+      filter: 'blur(0px)'
+    },
+    exit: {
+      opacity: 0,
+      y: isHome ? -80 : 80,
+      filter: 'blur(7px)',
+      backgroundColor: 'var(--color-primary-950)'
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-[var(--color-mist-950)] text-primary-100">
+    <div className="min-h-screen bg-[var(--color-primary-950)] text-primary-100">
       <AnimatePresence mode="wait">
         <motion.div
           key={location.pathname}
-          initial={{ opacity: 0, y: 12, filter: 'blur(5px)' }}
-          animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-          exit={{ opacity: 0, y: -10, filter: 'blur(4px)', backgroundColor: 'var(--color-mist-950)' }}
-          transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
-          className="min-h-screen bg-[var(--color-mist-950)]"
+          variants={pageVariants}
+          initial="initial"
+          animate="animate"
+          exit="exit"
+          transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+          className="min-h-screen bg-[var(--color-primary-950)]"
         >
           <Routes location={location}>
             <Route path="/" element={<Home />} />
@@ -34,7 +58,7 @@ function AppRoutes() {
         </motion.div>
       </AnimatePresence>
     </div>
-  )
+  );
 }
 
 function App() {

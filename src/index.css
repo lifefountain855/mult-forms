@@ -4,8 +4,8 @@
 @source "../node_modules/@asappy/web-shared-ui/src";
 
 :root {
-  color: var(--color-mist-200);
-  background: var(--color-mist-950);
+  color: var(--color-primary-200);
+  background: var(--color-primary-950);
   font-family: 'Space Grotesk', sans-serif;
   /* font-synthesis: none; */
   text-rendering: optimizeLegibility;
@@ -20,26 +20,27 @@
   --color-primary-700: var(--color-mist-700);
   --color-primary-800: var(--color-mist-800);
   --color-primary-900: var(--color-mist-900);
+  --color-primary-950: var(--color-mist-950);
 
-  --color-secondary-100: color-mix(in oklch, var(--color-neutral-100), 40% var(--color-green-100));
-  --color-secondary-200: color-mix(in oklch, var(--color-neutral-200), 40% var(--color-green-200));
-  --color-secondary-300: color-mix(in oklch, var(--color-neutral-300), 40% var(--color-green-300));
-  --color-secondary-400: color-mix(in oklch, var(--color-neutral-400), 40% var(--color-green-400));
-  --color-secondary-500: color-mix(in oklch, var(--color-neutral-500), 40% var(--color-green-500));
-  --color-secondary-600: color-mix(in oklch, var(--color-neutral-600), 40% var(--color-green-600));
-  --color-secondary-700: color-mix(in oklch, var(--color-neutral-700), 40% var(--color-green-700));
-  --color-secondary-800: color-mix(in oklch, var(--color-neutral-800), 40% var(--color-green-800));
-  --color-secondary-900: color-mix(in oklch, var(--color-neutral-900), 40% var(--color-green-900));
+  --color-secondary-100: color-mix(in oklch, var(--color-neutral-100), 40% var(--color-sky-100));
+  --color-secondary-200: color-mix(in oklch, var(--color-neutral-200), 40% var(--color-sky-200));
+  --color-secondary-300: color-mix(in oklch, var(--color-neutral-300), 40% var(--color-sky-300));
+  --color-secondary-400: color-mix(in oklch, var(--color-neutral-400), 40% var(--color-sky-400));
+  --color-secondary-500: color-mix(in oklch, var(--color-neutral-500), 40% var(--color-sky-500));
+  --color-secondary-600: color-mix(in oklch, var(--color-neutral-600), 40% var(--color-sky-600));
+  --color-secondary-700: color-mix(in oklch, var(--color-neutral-700), 40% var(--color-sky-700));
+  --color-secondary-800: color-mix(in oklch, var(--color-neutral-800), 40% var(--color-sky-800));
+  --color-secondary-900: color-mix(in oklch, var(--color-neutral-900), 40% var(--color-sky-900));
 
-  --color-accent-100: var(--color-green-100);
-  --color-accent-200: var(--color-green-200);
-  --color-accent-300: var(--color-green-300);
-  --color-accent-400: var(--color-green-400);
-  --color-accent-500: var(--color-green-500);
-  --color-accent-600: var(--color-green-600);
-  --color-accent-700: var(--color-green-700);
-  --color-accent-800: var(--color-green-800);
-  --color-accent-900: var(--color-green-900);
+  --color-accent-100: var(--color-sky-100);
+  --color-accent-200: var(--color-sky-200);
+  --color-accent-300: var(--color-sky-300);
+  --color-accent-400: var(--color-sky-400);
+  --color-accent-500: var(--color-sky-500);
+  --color-accent-600: var(--color-sky-600);
+  --color-accent-700: var(--color-sky-700);
+  --color-accent-800: var(--color-sky-800);
+  --color-accent-900: var(--color-sky-900);
 }
 
 * {
