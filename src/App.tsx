@@ -10,6 +10,7 @@ function AppRoutes() {
   const location = useLocation();
 
   const isHome = location.pathname === '/';
+  
 
   // Main Page (/): Enters from top (-y), exits to bottom (+y)
   // Subpages (*): Enter from bottom (+y), exit to top (-y)
@@ -46,14 +47,21 @@ function AppRoutes() {
         >
           <Routes location={location}>
             <Route path="/" element={<Home />} />
-            <Route path="*" element={<NotFound />} />
-            {allSurveys.map((survey) => (
+            {allSurveys.filter(survey=>survey.requiresScreen).map((survey) => (
               <Route
-                key={survey.link}
-                path={survey.link}
-                element={<Survey survey={survey} />}
+                key={`${survey.link}-screening`}
+                path={`${survey.link}/screening`}
+                element={<Survey survey={survey} route="screening" />}
               />
             ))}
+            {allSurveys.map((survey) => (
+              <Route
+                key={`${survey.link}-start`}
+                path={`${survey.link}/start`}
+                element={<Survey survey={survey} route="start" />}
+              />
+            ))}
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </motion.div>
       </AnimatePresence>

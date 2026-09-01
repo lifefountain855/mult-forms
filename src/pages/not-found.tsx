@@ -8,7 +8,7 @@ export default function NotFound(){
             <title>Asappy Surveys - Not Found</title>
             <span className="text-center text-xl sm:text-3xl md:text-4xl lg:text-6xl mx-25">we couldnt find the page your looking for...</span>
             <Link className={card1} to="/">
-                <ArrowLeft className="text-primary-400 transition duration-200 group-hover:-translate-x-2 group-hover:text-green-300" aria-hidden="true" />
+                <ArrowLeft className="text-primary-400 transition duration-200 group-hover:-translate-x-2 group-hover:text-accent-300" aria-hidden="true" />
                 <span>Go Home</span>
             </Link>
         </div>

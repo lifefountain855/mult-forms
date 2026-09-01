@@ -24,7 +24,7 @@ export default function Home() {
             <p className="text-5xl text-primary-100">surveys</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-10 w-3/4 max-w-2xl">
                 {allSurveys.map((survey, index) => (
-                    survey.visible && (
+                    (survey.visible || USER.admin) && (
                         <motion.div
                             key={survey.link}
                             variants={cardVariants}
@@ -35,7 +35,7 @@ export default function Home() {
                             whileTap={{ scale: 0.99 }}
                             className="h-full"
                         >
-                            <Link className={`${card1} group block h-full`} to={survey.link}>
+                            <Link className={`${card1} group block h-full`} to={`/${survey.link}/${survey.requiresScreen ? (USER.surveyData[survey.link].passedScreen ? 'start' : 'screening') : 'start'}`}>
                                 <motion.div
                                     variants={arrowVariants}
                                     transition={{ type: 'spring', stiffness: 320, damping: 20 }}
@@ -51,7 +51,7 @@ export default function Home() {
                                 <div className="flex justify-center flex-col">
                                     <span className="text-sm text-primary-300">{survey.description}</span>
                                 </div>
-                                <span className="text-xs ml-auto mt-auto -mb-2 text-primary-500 italic flex flex-row gap-2"><CalendarDays size={14} aria-hidden="true" />{survey.publishStamp[0]}/{survey.publishStamp[1]}/{survey.publishStamp[2]}</span>
+                                <span className="text-xs ml-auto mt-auto -mb-2 text-primary-500 italic flex flex-row gap-2">{survey.visible ? '' : '~~invisble to user~~'}<CalendarDays size={14} aria-hidden="true" />{survey.publishStamp[0]}/{survey.publishStamp[1]}/{survey.publishStamp[2]}</span>
                             </Link>
                         </motion.div>
                     )
