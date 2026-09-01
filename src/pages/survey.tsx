@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowUpRight, ArrowLeft, ArrowRight, CalendarDays } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
+import { motion } from 'motion/react';
 import FormForm, { type FormSubmitData } from "../components/form"
-import {type SurveyData} from "../lib/User"
 import {USER} from "./home"
 
 
@@ -64,21 +64,35 @@ export default function Survey({survey}:any){
         setStart(true)
     }
 
-    const beginButton="flex p-8 aspect-5/3 rounded-2xl items-center justify-center border-primary-600 bg-primary-700/20 hover:bg-green-500/50"
-    const endButton="absolute top-5 right-5 flex p-2 px-4 sm:px-8 lg:py-3 lg:px-12 rounded-2xl items-center justify-center border-primary-600 bg-primary-700/20 hover:bg-red-500/50"
+    const beginButton="flex p-8 aspect-5/3 rounded-2xl items-center justify-center border-primary-600 bg-primary-700/20"
+    const endButton="absolute top-5 right-5 flex p-2 px-4 sm:px-8 lg:py-3 lg:px-12 rounded-2xl items-center justify-center border-primary-600 bg-primary-700/20"
 
    return (
     <div className="relative flex flex-col gap-4 pt-15 items-center justify-center py-10 px-8 sm:px-15 md:px-25">
         <title>{`Asappy Surveys - ${name}`}</title>
         
         {started && (
-            <button className={endButton} onClick={() => setStart(false)}>Exit</button>
+            <motion.button
+                whileHover={{ y: -2, scale: 1.01, backgroundColor:'var(--color-red-800)' }}
+                whileTap={{ scale: 0.98 }}
+
+                className={endButton}
+                onClick={() => setStart(false)}
+            >
+                Exit
+            </motion.button>
         )}
         
-        <Link className="flex flex-row group absolute top-5 left-5 gap-2 justify-center items-center" to='/'>
-            <ArrowLeft className="size-6 md:size-7 text-primary-400 transition duration-200 group-hover:-translate-x-2 group-hover:text-accent-300" aria-hidden="true" />
-            <span className="invisible sm:visible text-sm sm:text-base md:text-lg">Home</span>
-        </Link>
+        <motion.div
+            whileHover={{ x: -4 }}
+            transition={{ type: 'spring', stiffness: 320, damping: 22 }}
+            className="absolute top-5 left-5"
+        >
+            <Link className="flex flex-row group gap-2 justify-center items-center" to='/'>
+                <ArrowLeft className="size-6 md:size-7 text-primary-400 group-hover:text-accent-300" aria-hidden="true" />
+                <span className="invisible sm:visible text-sm sm:text-base md:text-lg">Home</span>
+            </Link>
+        </motion.div>
         
         <span className="text-3xl sm:text-5xl md:text-6xl lg:text-8xl border-b-4 border-accent-300">{name}</span>
         
@@ -107,7 +121,14 @@ export default function Survey({survey}:any){
             {requiresScreen && !started && !submitScreen && !noMoreAttempts && (
                 <>
                     <span className="text-center">This survey requires screening.</span>
-                    <button className={beginButton} onClick={handleSetStart}>Begin</button>
+                    <motion.button
+                        whileHover={{ y: -2, scale: 1.02, backgroundColor:'var(--color-green-800)' }}
+                        whileTap={{ scale: 0.99 }}
+                        className={beginButton}
+                        onClick={handleSetStart}
+                    >
+                        Begin
+                    </motion.button>
                 </>
             )}
 
@@ -138,7 +159,14 @@ export default function Survey({survey}:any){
                             <h1 className="text-accent-300 text-lg sm:text-2xl">Submit successful!</h1>
                         )}
                         {!started && !noMoreAttempts && (
-                            <button className={beginButton} onClick={handleSetStart}>Begin</button>
+                            <motion.button
+                                whileHover={{ y: -2, scale: 1.02, backgroundColor:'var(--color-green-800)' }}
+                                whileTap={{ scale: 0.99 }}
+                                className={beginButton}
+                                onClick={handleSetStart}
+                            >
+                                Begin
+                            </motion.button>
                         )}
                         {started && (
                             <FormForm schema={questions} onSubmit={handleSurveySubmit} isScreen={false} />

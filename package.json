@@ -13,6 +13,7 @@
     "@tailwindcss/vite": "^4.3.3",
     "asappy-web-shared-ui": "^1.0.1",
     "lucide-react": "^1.37.0",
+    "motion": "^13.1.1",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "react-router-dom": "^7.18.3",
