@@ -7,7 +7,7 @@ import {USER} from "./home"
 
 
 export default function Survey({survey}:any){
-    const { link, name, longDescription, author, publishStamp, requiresScreen, allowedSubmits, screen, questions} = survey
+    const { link, name, longDescription, author, visible, publishStamp, requiresScreen, allowedSubmits, screen, questions} = survey
     if (!USER.surveyData){
         USER.surveyData = {}
     }
@@ -23,12 +23,13 @@ export default function Survey({survey}:any){
     const [submitSurvey, setSubmitSurvey] = useState(userSurvey.submitted || false)
     const [passedScreen, setPassedScreen] = useState(userSurvey.passedScreen || false)
     const [noMoreAttempts, setNoMoreAttempts] = useState((userSurvey.submitTimes >= allowedSubmits) || false)
-    console.log(noMoreAttempts,userSurvey.submitTimes,allowedSubmits,(userSurvey.submitTimes >= allowedSubmits))
+    // console.log(noMoreAttempts,userSurvey.submitTimes,allowedSubmits,(userSurvey.submitTimes >= allowedSubmits))
     const handleScreenSubmit = (data: FormSubmitData) => {
         console.log('Received payload from form:', data);
         setStart(false);
         setSubmitScreen(true)
         userSurvey.submittedScreen = true;
+        userSurvey.screenData = data;
         if (data.isFlagged){
             setPassedScreen(false);
             userSurvey.passedScreen = false;
@@ -68,6 +69,7 @@ export default function Survey({survey}:any){
 
     return (
         <div className="relative flex flex-col gap-4 pt-15 items-center justify-center py-10 px-8 sm:px-15 md:px-25">
+            <title>{`Asappy Surveys - ${name}`}</title>
             {started && (<button className={endButton} onClick={()=> setStart(false)}>Exit</button>)}
             <Link className="flex flex-row group absolute top-5 left-5 gap-2 justify-center items-center" to='/'>
                 <ArrowLeft className="size-6 md:size-7 text-primary-400 transition duration-200 group-hover:-translate-x-2 group-hover:text-accent-300" aria-hidden="true" />
@@ -75,8 +77,11 @@ export default function Survey({survey}:any){
             </Link>
             <span className="text-3xl sm:text-5xl md:text-6xl lg:text-8xl border-b-4 border-accent-300">{name}</span>
             {!started && !noMoreAttempts && (<p className="text-xs sm:text-sm text-primary-500 italic -mt-3 flex flex-row gap-2">{author} - {publishStamp[0]}/{publishStamp[1]}/{publishStamp[2]}</p>)}
-            {passedScreen && submitScreen && !started && (
+            {!started && (
                 <span className={`text-${(userSurvey.submitTimes >= allowedSubmits) ? 'red' : 'primary'}-400 -mt-2`}>Allowed submits: {userSurvey.submitTimes}/{allowedSubmits}</span>
+            )}
+            {!visible && (
+                <span className='text-primary-500 italic'>This is a private survey sent by a link.</span>
             )}
             {!started && !noMoreAttempts && (<p className="text-sm md:text-lg text-primary-400 text-center max-w-2xl">{longDescription}</p>)}
             { requiresScreen ? (
@@ -85,13 +90,6 @@ export default function Survey({survey}:any){
                     {!started && !submitScreen && !noMoreAttempts && (<button className={beginButton} onClick={handleSetStart}>Begin</button>)}
                     {noMoreAttempts && (<span className="text-center text-red-400">You've submitted as many times as you can.</span>)}
                     <div className="flex flex-col gap-12 p-2 w-full justify-center items-center">
-                        {/* {started && (
-                            // screen.map((q:any,i:number)=>(
-                            //     <div className="flex flex-col items-left gap-3">
-                            //         <h1 className='text-xl'>{q.question}</h1>
-                            //     </div>
-                            // ))
-                            )} */}
                         {started && !submitScreen && (<FormForm schema={screen} onSubmit={handleScreenSubmit} isScreen={true} />)}
                         {!passedScreen && submitScreen && !submitSurvey && (
                             <div className="flex justify-center items-center">
@@ -111,8 +109,17 @@ export default function Survey({survey}:any){
                     </div>
                 </div>
             ) : (
-                <div>
-                    <span></span>
+                <div className='relative flex flex-col gap-4 items-center justify-center w-full'>
+                    {noMoreAttempts && (<span className="text-center text-red-400">You've submitted as many times as you can.</span>)}
+                    <div className="flex flex-col gap-12 p-2 w-full justify-center items-center">
+                            <div className="flex flex-col justify-center items-center gap-5">
+                                {!started && submitSurvey && (
+                                    <h1 className="text-accent-300 text-lg sm:text-2xl">Submit successful!</h1>
+                                )}
+                                {!started && !noMoreAttempts && (<button className={beginButton} onClick={handleSetStart}>Begin</button>)}
+                                {started && (<FormForm schema={questions} onSubmit={handleSurveySubmit} isScreen={false} />)}
+                            </div>
+                    </div>
                 </div>
             )}
         </div>

@@ -113,7 +113,8 @@
             {
                 "id":"q_8",
                 "question":"How often do you clean your apartment?",
-                "type":"freq-1"
+                "type":"multi",
+                "subtypeM":"freq1"
             }
         ]
     },
@@ -131,7 +132,8 @@
             {
                 "id":"q_9",
                 "question":"How often do you clean your apartment?",
-                "type":"freq-1"
+                "type":"multi",
+                "subtypeM":"freq1"
             }
         ]
     },
@@ -149,7 +151,8 @@
             {
                 "id":"q_10",
                 "question":"How often do you clean your apartment?",
-                "type":"freq-1"
+                "type":"multi",
+                "subtypeM":"freq1"
             }
         ]
     },
@@ -167,7 +170,8 @@
             {
                 "id":"q_11",
                 "question":"How often do you clean your apartment?",
-                "type":"freq-1"
+                "type":"multi",
+                "subtypeM":"freq1"
             }
         ]
     },
@@ -185,7 +189,8 @@
             {
                 "id":"q_12",
                 "question":"How often do you clean your apartment?",
-                "type":"freq-1"
+                "type":"multi",
+                "subtypeM":"freq1"
             }
         ]
     },
@@ -203,7 +208,8 @@
             {
                 "id":"q_13",
                 "question":"How often do you clean your apartment?",
-                "type":"freq-1"
+                "type":"multi",
+                "subtypeM":"freq1"
             }
         ]
     }
