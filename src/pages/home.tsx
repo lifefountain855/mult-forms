@@ -35,7 +35,7 @@ export default function Home() {
                             whileTap={{ scale: 0.99 }}
                             className="h-full"
                         >
-                            <Link className={`${card1} group block h-full`} to={`/${survey.link}/${survey.requiresScreen ? (USER.surveyData[survey.link].passedScreen ? 'start' : 'screening') : 'start'}`}>
+                            <Link className={`${card1} group block h-full`} to={`/${survey.link}/${survey.requiresScreen ? (USER.surveyData[survey.link]?.passedScreen ? 'start' : 'screening') : 'start'}`}>
                                 <motion.div
                                     variants={arrowVariants}
                                     transition={{ type: 'spring', stiffness: 320, damping: 20 }}
