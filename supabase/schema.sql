@@ -63,6 +63,15 @@ create policy "Users can read and update only their survey state"
   using (auth.uid() = user_id)
   with check (auth.uid() = user_id);
 
+drop policy if exists "Admins can read survey results without user profile access" on public.survey_state;
+create policy "Admins can read survey results without user profile access"
+  on public.survey_state
+  for select
+  using (exists (
+    select 1 from public.profiles p
+    where p.id = auth.uid() and p.is_admin = true
+  ));
+
 create policy "Public read access to surveys"
   on public.surveys
   for select

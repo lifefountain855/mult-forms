@@ -6,6 +6,7 @@ import FormForm, { type FormSubmitData } from '../components/form';
 import UserProfile, { type SurveyData } from '../lib/User';
 import { supabase } from '../lib/supabase';
 import type { SurveyDefinition } from '../lib/surveys';
+import Toast from '../components/toast';
 
 export default function Survey({ survey, route }: { survey: SurveyDefinition; route?: 'screening' | 'start' }) {
     const { link, name, longDescription, author, visible, publishStamp, requiresScreen, allowedSubmits, screen, questions } = survey;
@@ -18,24 +19,43 @@ export default function Survey({ survey, route }: { survey: SurveyDefinition; ro
 
     const [user, setUser] = useState<UserProfile | null>(null);
     const [authChecked, setAuthChecked] = useState(false);
+    const [profileError, setProfileError] = useState<string | null>(null);
+    const [submitLoading, setSubmitLoading] = useState(false);
+    const [submitError, setSubmitError] = useState<string | null>(null);
+    const [submitMessage, setSubmitMessage] = useState<string | null>(null);
 
     useEffect(() => {
         let isMounted = true;
 
         const refreshUser = async () => {
-            const profile = await UserProfile.initLoad();
-            if (isMounted) {
-                setUser(profile);
-                setAuthChecked(true);
+            try {
+                const profile = await UserProfile.initLoad();
+                if (isMounted) setUser(profile);
+            } catch (loadError) {
+                if (isMounted) setProfileError(loadError instanceof Error ? loadError.message : 'Unable to load your profile.');
+            } finally {
+                if (isMounted) {
+                    setAuthChecked(true);
+                }
             }
         };
 
-        supabase.auth.getSession().then(({ data }) => {
+        supabase.auth.getSession().then(({ data, error: sessionError }) => {
             if (!isMounted) return;
+            if (sessionError) {
+                setProfileError(`Unable to check your session: ${sessionError.message}`);
+                setAuthChecked(true);
+                return;
+            }
             if (data.session) {
                 refreshUser();
             } else {
                 setUser(new UserProfile());
+                setAuthChecked(true);
+            }
+        }).catch(() => {
+            if (isMounted) {
+                setProfileError('Unable to check your session. Please try again.');
                 setAuthChecked(true);
             }
         });
@@ -61,6 +81,10 @@ export default function Survey({ survey, route }: { survey: SurveyDefinition; ro
         return <div className="flex justify-center pt-20"><title>{`Asappy Surveys - ${name}`}</title>Loading profile...</div>;
     }
 
+    if (profileError) {
+        return <div className="flex min-h-screen items-center justify-center p-8 text-red-300">{profileError}</div>;
+    }
+
     // 2. Auth Guard
     if (!user?.id) {
         return <Navigate to="/auth" replace />;
@@ -82,42 +106,60 @@ export default function Survey({ survey, route }: { survey: SurveyDefinition; ro
     const noMoreAttempts = (surveyState.submitTimes >= allowedSubmits) || false;
 
     const handleScreenSubmit = async (data: FormSubmitData) => {
+        setSubmitLoading(true);
+        setSubmitError(null);
         const nextState = {
             submittedScreen: true,
             passedScreen: !data.isFlagged,
             screenData: data.values,
         };
 
-        const profile = await UserProfile.initLoad();
-        const saved = await profile.saveSurveyState(link, nextState);
-        setUser(new UserProfile(profile.id, profile.admin, {
-            ...(profile.surveyData ?? {}),
-            [link]: saved,
-        }));
+        try {
+            const profile = await UserProfile.initLoad();
+            const saved = await profile.saveSurveyState(link, nextState);
+            setUser(new UserProfile(profile.id, profile.admin, {
+                ...(profile.surveyData ?? {}),
+                [link]: saved,
+            }));
+            setSubmitMessage('Screening submitted successfully.');
+        } catch (submitError) {
+            setSubmitError(submitError instanceof Error ? submitError.message : 'Unable to save your screening.');
+        } finally {
+            setSubmitLoading(false);
+        }
     };
 
     const handleSurveySubmit = async (data: FormSubmitData) => {
-        const profile = await UserProfile.initLoad();
-        const currentSurvey = profile.surveyData?.[link] ?? {
-            id: link,
-            submitted: false,
-            submitTimes: 0,
-            submittedScreen: false,
-            passedScreen: false,
-            screenData: {},
-            data: {},
-        };
+        setSubmitLoading(true);
+        setSubmitError(null);
+        try {
+            const profile = await UserProfile.initLoad();
+            const currentSurvey = profile.surveyData?.[link] ?? {
+                id: link,
+                submitted: false,
+                submitTimes: 0,
+                submittedScreen: false,
+                passedScreen: false,
+                screenData: {},
+                data: {},
+            };
 
-        const saved = await profile.saveSurveyState(link, {
-            submitted: true,
-            submitTimes: (currentSurvey.submitTimes ?? 0) + 1,
-            data: data.values,
-        });
+            const saved = await profile.saveSurveyState(link, {
+                submitted: true,
+                submitTimes: (currentSurvey.submitTimes ?? 0) + 1,
+                data: data.values,
+            });
 
-        setUser(new UserProfile(profile.id, profile.admin, {
-            ...(profile.surveyData ?? {}),
-            [link]: saved,
-        }));
+            setUser(new UserProfile(profile.id, profile.admin, {
+                ...(profile.surveyData ?? {}),
+                [link]: saved,
+            }));
+            setSubmitMessage('Survey submitted successfully.');
+        } catch (submitError) {
+            setSubmitError(submitError instanceof Error ? submitError.message : 'Unable to save your survey.');
+        } finally {
+            setSubmitLoading(false);
+        }
     };
 
     const beginButton = "text-center flex p-8 aspect-5/3 rounded-2xl items-center justify-center border-primary-600 bg-primary-700/20 hover:bg-accent-800";
@@ -130,6 +172,9 @@ export default function Survey({ survey, route }: { survey: SurveyDefinition; ro
     return (
         <div className="relative flex flex-col gap-4 pt-15 items-center justify-center py-10 px-8 sm:px-15 md:px-25">
             <title>{`Asappy Surveys - ${name}`}</title>
+            {submitMessage && <Toast message={submitMessage} />}
+            {submitError && <Toast message={submitError} tone="error" />}
+            {submitLoading && <div className="text-sm text-primary-300">Saving your response...</div>}
 
             <motion.div
                 whileHover={{ x: -4 }}

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, LogIn, LogOut } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import Toast from '../components/toast';
 
 export default function AuthPage() {
   const [mode, setMode] = useState<'signin' | 'signup'>('signin');
@@ -12,19 +13,27 @@ export default function AuthPage() {
   const [message, setMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
 
   useEffect(() => {
     let isMounted = true;
 
-    supabase.auth.getSession().then(({ data }) => {
+    supabase.auth.getSession().then(({ data, error: sessionError }) => {
+      if (!isMounted) return;
+      if (sessionError) setError(`Unable to check your session: ${sessionError.message}`);
+      setUserEmail(data.session?.user?.email ?? null);
+      setAuthLoading(false);
+    }).catch(() => {
       if (isMounted) {
-        setUserEmail(data.session?.user?.email ?? null);
+        setError('Unable to check your session. Please try again.');
+        setAuthLoading(false);
       }
     });
 
     const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
       if (isMounted) {
         setUserEmail(session?.user?.email ?? null);
+        setAuthLoading(false);
       }
     });
 
@@ -33,6 +42,10 @@ export default function AuthPage() {
       authListener.subscription.unsubscribe();
     };
   }, []);
+
+  if (authLoading) {
+    return <div className="flex min-h-screen items-center justify-center p-8 text-primary-300">Checking your session...</div>;
+  }
 
   const resetStatus = () => {
     setError(null);
@@ -105,6 +118,8 @@ export default function AuthPage() {
     return (
       <div className="min-h-screen flex items-center justify-center px-6 py-12 text-primary-100">
         <title>Asappy Surveys - Auth</title>
+        {message && <Toast message={message} />}
+        {error && <Toast message={error} tone="error" />}
         <div className="w-full max-w-md rounded-2xl border border-primary-700 bg-primary-900 p-8 shadow-xl">
           <div className="mb-6 flex items-center gap-3">
             <Link to="/" className="inline-flex items-center gap-2 text-primary-300 hover:text-accent-300">
@@ -133,6 +148,8 @@ export default function AuthPage() {
   return (
     <div className="min-h-screen flex items-center justify-center px-6 py-12 text-primary-100">
       <title>Asappy Surveys - Auth</title>
+      {message && <Toast message={message} />}
+      {error && <Toast message={error} tone="error" />}
       <div className="w-full max-w-md rounded-2xl border border-primary-700 bg-primary-900 p-8 shadow-xl">
         <div className="mb-6 flex items-center justify-between">
           <h1 className="text-2xl font-semibold">{mode === 'signin' ? 'Sign in' : 'Create account'}</h1>
@@ -197,9 +214,6 @@ export default function AuthPage() {
               required
             />
           </div>
-
-          {error && <p className="text-sm text-red-300">{error}</p>}
-          {message && <p className="text-sm text-accent-200">{message}</p>}
 
           <button
             type="submit"

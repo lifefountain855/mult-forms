@@ -103,8 +103,7 @@ export default class UserProfile {
       .maybeSingle();
 
     if (error) {
-      console.error('Failed to save survey state:', error.message);
-      return nextState;
+      throw new Error(`Unable to save survey response: ${error.message}`);
     }
 
     if (data) {
@@ -132,7 +131,11 @@ export default class UserProfile {
 
     const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
 
-    if (sessionError || !sessionData.session?.user?.id) {
+    if (sessionError) {
+      throw new Error(`Unable to load your session: ${sessionError.message}`);
+    }
+
+    if (!sessionData.session?.user?.id) {
       return new UserProfile('', false, {});
     }
 
@@ -151,8 +154,7 @@ export default class UserProfile {
       .eq('user_id', userId);
 
     if (profileError || stateError) {
-      console.error('Failed to load Supabase user state:', profileError?.message ?? stateError?.message ?? 'unknown error');
-      return new UserProfile(userId, admin, {});
+      throw new Error(`Unable to load your profile: ${profileError?.message ?? stateError?.message ?? 'unknown error'}`);
     }
 
     const surveyData: DataProps = {};

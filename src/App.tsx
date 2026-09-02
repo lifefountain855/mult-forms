@@ -4,6 +4,8 @@ import NotFound from './pages/not-found';
 import Survey from './pages/survey';
 import Home from './pages/home';
 import AuthPage from './pages/auth';
+import AdminPage from './pages/admin';
+import Account from './pages/account';
 import { useEffect, useState } from 'react';
 import { UseFavicon } from 'asappy-web-shared-ui'
 import { loadSurveys, type SurveyDefinition } from './lib/surveys';
@@ -50,6 +52,8 @@ function AppRoutes({ surveys }: { surveys: SurveyDefinition[] }) {
           <Routes location={location}>
             <Route path="/" element={<Home surveys={surveys} />} />
             <Route path="/auth" element={<AuthPage />} />
+            <Route path="/admin/results" element={<AdminPage surveys={surveys} />} />
+            <Route path="/account" element={<Account surveys={surveys} />} />
             {surveys.filter(survey=>survey.requiresScreen).map((survey) => (
               <Route
                 key={`${survey.link}-screening`}
