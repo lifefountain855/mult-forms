@@ -210,7 +210,7 @@ export default function AuthPage() {
               onChange={(e) => setPassword(e.target.value)}
               className="w-full rounded-lg border border-primary-600 bg-primary-950 px-3 py-2 text-primary-100 outline-none placeholder:text-primary-500 focus:border-accent-400"
               placeholder="••••••••"
-              minLength={6}
+              minLength={8}
               required
             />
           </div>

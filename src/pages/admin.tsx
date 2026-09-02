@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, Navigate } from 'react-router-dom';
-import { ArrowLeft, BarChart3, LogOut, ShieldAlert } from 'lucide-react';
+import { ArrowLeft, BarChart3, LogOut, ShieldAlert, HomeIcon } from 'lucide-react';
 import UserProfile from '../lib/User';
 import { supabase } from '../lib/supabase';
 import { loadSurveyResults, type SurveyResultRow } from '../lib/survey-results';
 import type { SurveyDefinition } from '../lib/surveys';
+import MobileSidebar from '../components/mobile-sidebar';
 
 function formatAnswer(value: unknown): string {
   if (Array.isArray(value)) return value.join(', ');
@@ -73,13 +74,16 @@ export default function AdminPage({ surveys }: { surveys: SurveyDefinition[] }) 
           <Link to="/" className="inline-flex items-center gap-2 text-primary-300 hover:text-accent-300">
             <ArrowLeft className="size-4" /> Home
           </Link>
-          <button
-            type="button"
-            onClick={() => supabase.auth.signOut()}
-            className="inline-flex items-center gap-2 rounded-lg border border-primary-600 px-4 py-2 text-sm hover:border-accent-400"
-          >
-            <LogOut className="size-4" /> Sign out
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => supabase.auth.signOut()}
+              className="hidden items-center gap-2 rounded-lg border border-primary-600 px-4 py-2 text-sm hover:border-accent-400 sm:inline-flex"
+            >
+              <LogOut className="size-4" /> Sign out
+            </button>
+            <MobileSidebar onSignOut={() => { void supabase.auth.signOut(); }} currentPage='admin' show={{home:true,admin:true,account:true}}/>
+          </div>
         </div>
         <div className="mb-8">
           <p className="mb-2 inline-flex items-center gap-2 text-sm text-accent-300"><BarChart3 className="size-4" /> Admin only</p>

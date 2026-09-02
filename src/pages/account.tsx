@@ -4,6 +4,7 @@ import { ArrowLeft, LogOut } from 'lucide-react';
 import UserProfile, { type SurveyData } from '../lib/User';
 import { supabase } from '../lib/supabase';
 import type { SurveyDefinition } from '../lib/surveys';
+import MobileSidebar from '../components/mobile-sidebar';
 
 function formatAnswer(value: unknown): string {
   if (Array.isArray(value)) return value.join(', ');
@@ -57,7 +58,10 @@ export default function Account({ surveys }: { surveys: SurveyDefinition[] }) {
       <title>Asappy Surveys - Account</title>
       <div className="flex items-center justify-between gap-4">
         <Link to="/" className="inline-flex items-center gap-2 text-primary-300 hover:text-accent-300"><ArrowLeft className="size-4" />Home</Link>
-        <button type="button" onClick={async () => { await supabase.auth.signOut(); navigate('/'); }} className="inline-flex items-center gap-2 rounded-lg border border-primary-600 px-3 py-2 text-sm hover:border-accent-400 hover:text-accent-200"><LogOut className="size-4" />Sign out</button>
+        <div className="flex items-center gap-2">
+          <button type="button" onClick={async () => { await supabase.auth.signOut(); navigate('/'); }} className="hidden items-center gap-2 rounded-lg border border-primary-600 px-3 py-2 text-sm hover:border-accent-400 hover:text-accent-200 sm:inline-flex"><LogOut className="size-4" />Sign out</button>
+          <MobileSidebar onSignOut={async () => { await supabase.auth.signOut(); navigate('/'); }} currentPage='account' show={{home:true,admin:user.admin,account:true}}/>
+        </div>
       </div>
       <header>
         <h1 className="text-4xl">Your account</h1>

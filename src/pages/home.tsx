@@ -1,11 +1,12 @@
 import { Link } from 'react-router-dom'
-import { ArrowUpRight, CalendarDays, LogIn, LogOut, Menu, ShieldCheck, UserRound, X } from 'lucide-react';
-import { AnimatePresence, motion } from 'motion/react';
+import { ArrowUpRight, CalendarDays, Home as HomeIcon, LogIn, LogOut, ShieldCheck, UserRound } from 'lucide-react';
+import { motion } from 'motion/react';
 import { useEffect, useState } from 'react';
 import UserProfile from '../lib/User';
 import { supabase } from '../lib/supabase';
 import type { SurveyDefinition } from '../lib/surveys';
 import Toast from '../components/toast';
+import MobileSidebar from '../components/mobile-sidebar';
 
 const cardVariants = {
     initial: {opacity: 0, y: 18},
@@ -23,7 +24,6 @@ export default function Home({ surveys }: { surveys: SurveyDefinition[] }) {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [message, setMessage] = useState<string | null>(null);
-    const [menuOpen, setMenuOpen] = useState(false);
 
     useEffect(() => {
         let isMounted = true;
@@ -61,21 +61,6 @@ export default function Home({ surveys }: { surveys: SurveyDefinition[] }) {
         };
     }, []);
 
-    useEffect(() => {
-        if (!menuOpen) return;
-
-        const closeOnEscape = (event: KeyboardEvent) => {
-            if (event.key === 'Escape') setMenuOpen(false);
-        };
-
-        document.addEventListener('keydown', closeOnEscape);
-        document.body.style.overflow = 'hidden';
-        return () => {
-            document.removeEventListener('keydown', closeOnEscape);
-            document.body.style.overflow = '';
-        };
-    }, [menuOpen]);
-
     const handleSignOut = async () => {
         setError(null);
         const { error: signOutError } = await supabase.auth.signOut();
@@ -105,7 +90,7 @@ export default function Home({ surveys }: { surveys: SurveyDefinition[] }) {
     });
 
     return (
-        <div className='m-5 mt-10 flex items-center flex-col gap-10'>
+        <div className='m-5 mt-0 pt-15 flex items-center flex-col gap-10'>
             <title>Asappy Surveys</title>
             {message && <Toast message={message} />}
             {error && <Toast message={error} tone="error" />}
@@ -113,7 +98,7 @@ export default function Home({ surveys }: { surveys: SurveyDefinition[] }) {
                 <p className="text-5xl text-primary-100">surveys</p>
                 {sessionEmail ? (
                     <>
-                    <div className="hidden items-center gap-2 md:flex">
+                    <div className="hidden items-center gap-2 sm:flex">
                         {user.admin && (
                             <Link
                                 to="/admin/results"
@@ -123,13 +108,6 @@ export default function Home({ surveys }: { surveys: SurveyDefinition[] }) {
                                 Results
                             </Link>
                         )}
-                        <Link
-                            to="/account"
-                            className="inline-flex items-center gap-2 rounded-lg border border-primary-600 bg-primary-900 px-4 py-2 text-sm text-primary-100 hover:border-accent-400 hover:text-accent-200"
-                        >
-                            <UserRound className="size-4" />
-                            Account
-                        </Link>
                         <button
                             type="button"
                             onClick={handleSignOut}
@@ -139,38 +117,7 @@ export default function Home({ surveys }: { surveys: SurveyDefinition[] }) {
                             Sign out
                         </button>
                     </div>
-                    <button
-                        type="button"
-                        onClick={() => setMenuOpen((open) => !open)}
-                        className="relative z-50 inline-flex size-11 items-center justify-center rounded-lg border border-primary-600 bg-primary-900 text-primary-100 hover:border-accent-400 hover:text-accent-200 md:hidden"
-                        aria-label={menuOpen ? 'Close account menu' : 'Open account menu'}
-                        aria-expanded={menuOpen}
-                        aria-controls="mobile-account-menu"
-                    >
-                        <AnimatePresence mode="wait" initial={false}>
-                            {menuOpen ? (
-                                <motion.span
-                                    key="close"
-                                    initial={{ rotate: -90, opacity: 0 }}
-                                    animate={{ rotate: 0, opacity: 1 }}
-                                    exit={{ rotate: 90, opacity: 0 }}
-                                    transition={{ duration: 0.16 }}
-                                >
-                                    <X className="size-5" aria-hidden="true" />
-                                </motion.span>
-                            ) : (
-                                <motion.span
-                                    key="menu"
-                                    initial={{ rotate: 90, opacity: 0 }}
-                                    animate={{ rotate: 0, opacity: 1 }}
-                                    exit={{ rotate: -90, opacity: 0 }}
-                                    transition={{ duration: 0.16 }}
-                                >
-                                    <Menu className="size-5" aria-hidden="true" />
-                                </motion.span>
-                            )}
-                        </AnimatePresence>
-                    </button>
+                    <MobileSidebar onSignOut={handleSignOut} currentPage='home' show={{home:true,admin:user.admin,account:true}}/>
                     </>
                 ) : (
                     <Link
@@ -182,64 +129,6 @@ export default function Home({ surveys }: { surveys: SurveyDefinition[] }) {
                     </Link>
                 )}
             </div>
-
-            <AnimatePresence>
-                {sessionEmail && menuOpen && (
-                    <>
-                        <motion.button
-                            type="button"
-                            aria-label="Close account menu"
-                            className="fixed inset-0 z-40 bg-primary-950/70 backdrop-blur-sm md:hidden"
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            transition={{ duration: 0.2 }}
-                            onClick={() => setMenuOpen(false)}
-                        />
-                        <motion.aside
-                            id="mobile-account-menu"
-                            aria-label="Account menu"
-                            className="fixed inset-y-0 right-0 z-40 flex w-[min(20rem,85vw)] flex-col border-l border-primary-700 bg-primary-900 px-6 pb-8 pt-28 shadow-2xl md:hidden"
-                            initial={{ x: '100%' }}
-                            animate={{ x: 0 }}
-                            exit={{ x: '100%' }}
-                            transition={{ type: 'spring', stiffness: 360, damping: 32 }}
-                        >
-                            <nav className="flex flex-col gap-3">
-                                {user.admin && (
-                                    <Link
-                                        to="/admin/results"
-                                        onClick={() => setMenuOpen(false)}
-                                        className="inline-flex items-center gap-3 rounded-lg border border-accent-700 px-4 py-3 text-accent-200 hover:border-accent-400"
-                                    >
-                                        <ShieldCheck className="size-5" />
-                                        Results
-                                    </Link>
-                                )}
-                                <Link
-                                    to="/account"
-                                    onClick={() => setMenuOpen(false)}
-                                    className="inline-flex items-center gap-3 rounded-lg border border-primary-600 bg-primary-950 px-4 py-3 text-primary-100 hover:border-accent-400 hover:text-accent-200"
-                                >
-                                    <UserRound className="size-5" />
-                                    Account
-                                </Link>
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        setMenuOpen(false);
-                                        void handleSignOut();
-                                    }}
-                                    className="inline-flex items-center gap-3 rounded-lg border border-primary-600 bg-primary-950 px-4 py-3 text-left text-primary-100 hover:border-accent-400 hover:text-accent-200"
-                                >
-                                    <LogOut className="size-5" />
-                                    Sign out
-                                </button>
-                            </nav>
-                        </motion.aside>
-                    </>
-                )}
-            </AnimatePresence>
 
             {sessionEmail && (
                 <p className="text-sm text-primary-300">Signed in as {sessionEmail}</p>
