@@ -8,7 +8,7 @@ import { supabase } from '../lib/supabase';
 import type { SurveyDefinition } from '../lib/surveys';
 
 export default function Survey({ survey, route }: { survey: SurveyDefinition; route?: 'screening' | 'start' }) {
-    const { link, name, longDescription, author, visible, publishStamp, requiresScreen, allowedSubmits, screen, questions} = survey;
+    const { link, name, longDescription, author, visible, publishStamp, requiresScreen, allowedSubmits, screen, questions } = survey;
     const location = useLocation();
     const currentRoute = route ?? (location.pathname.endsWith('/screening') ? 'screening' : 'start');
     const screeningPath = `/${link}/screening`;
@@ -16,7 +16,7 @@ export default function Survey({ survey, route }: { survey: SurveyDefinition; ro
     const isScreeningRoute = currentRoute === 'screening';
     const isStartRoute = currentRoute === 'start';
 
-    const [user, setUser] = useState<UserProfile>(new UserProfile());
+    const [user, setUser] = useState<UserProfile | null>(null);
     const [authChecked, setAuthChecked] = useState(false);
 
     useEffect(() => {
@@ -56,6 +56,16 @@ export default function Survey({ survey, route }: { survey: SurveyDefinition; ro
         };
     }, []);
 
+    // 1. Prevent evaluation while Supabase / Profile loading is pending
+    if (!authChecked) {
+        return <div className="flex justify-center pt-20"><title>{`Asappy Surveys - ${name}`}</title>Loading profile...</div>;
+    }
+
+    // 2. Auth Guard
+    if (!user?.id) {
+        return <Navigate to="/auth" replace />;
+    }
+
     const surveyState: SurveyData = user.surveyData?.[link] ?? {
         id: link,
         submitted: false,
@@ -66,17 +76,10 @@ export default function Survey({ survey, route }: { survey: SurveyDefinition; ro
         data: {},
     };
 
-    const [submitScreen, setSubmitScreen] = useState(surveyState.submittedScreen ?? false);
-    const [submitSurvey, setSubmitSurvey] = useState(surveyState.submitted ?? false);
-    const [passedScreen, setPassedScreen] = useState(surveyState.passedScreen ?? false);
-    const [noMoreAttempts, setNoMoreAttempts] = useState((surveyState.submitTimes >= allowedSubmits) || false);
-
-    useEffect(() => {
-        setSubmitScreen(surveyState.submittedScreen ?? false);
-        setSubmitSurvey(surveyState.submitted ?? false);
-        setPassedScreen(surveyState.passedScreen ?? false);
-        setNoMoreAttempts((surveyState.submitTimes >= allowedSubmits) || false);
-    }, [allowedSubmits, surveyState, user]);
+    const submitScreen = surveyState.submittedScreen ?? false;
+    const submitSurvey = surveyState.submitted ?? false;
+    const passedScreen = surveyState.passedScreen ?? false;
+    const noMoreAttempts = (surveyState.submitTimes >= allowedSubmits) || false;
 
     const handleScreenSubmit = async (data: FormSubmitData) => {
         const nextState = {
@@ -91,8 +94,6 @@ export default function Survey({ survey, route }: { survey: SurveyDefinition; ro
             ...(profile.surveyData ?? {}),
             [link]: saved,
         }));
-        setSubmitScreen(true);
-        setPassedScreen(!data.isFlagged);
     };
 
     const handleSurveySubmit = async (data: FormSubmitData) => {
@@ -117,16 +118,12 @@ export default function Survey({ survey, route }: { survey: SurveyDefinition; ro
             ...(profile.surveyData ?? {}),
             [link]: saved,
         }));
-        setSubmitSurvey(true);
     };
 
     const beginButton = "text-center flex p-8 aspect-5/3 rounded-2xl items-center justify-center border-primary-600 bg-primary-700/20 hover:bg-accent-800";
 
-    if (authChecked && !user.id) {
-        return <Navigate to="/auth" replace />;
-    }
-
-    if (requiresScreen && isStartRoute && !noMoreAttempts && (!submitScreen || !passedScreen)) {
+    // 3. Screening Guard (Only runs AFTER auth and surveyState are fully resolved)
+    if (requiresScreen && isStartRoute && !noMoreAttempts && (!surveyState.submittedScreen || !surveyState.passedScreen)) {
         return <Navigate to={screeningPath} replace />;
     }
 
