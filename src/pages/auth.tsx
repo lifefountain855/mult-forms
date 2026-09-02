@@ -104,6 +104,7 @@ export default function AuthPage() {
   if (userEmail) {
     return (
       <div className="min-h-screen flex items-center justify-center px-6 py-12 text-primary-100">
+        <title>Asappy Surveys - Auth</title>
         <div className="w-full max-w-md rounded-2xl border border-primary-700 bg-primary-900 p-8 shadow-xl">
           <div className="mb-6 flex items-center gap-3">
             <Link to="/" className="inline-flex items-center gap-2 text-primary-300 hover:text-accent-300">
@@ -131,6 +132,7 @@ export default function AuthPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center px-6 py-12 text-primary-100">
+      <title>Asappy Surveys - Auth</title>
       <div className="w-full max-w-md rounded-2xl border border-primary-700 bg-primary-900 p-8 shadow-xl">
         <div className="mb-6 flex items-center justify-between">
           <h1 className="text-2xl font-semibold">{mode === 'signin' ? 'Sign in' : 'Create account'}</h1>

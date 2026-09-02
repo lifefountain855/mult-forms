@@ -19,12 +19,18 @@ create table if not exists public.surveys (
   visible boolean not null default true,
   requires_screen boolean not null default false,
   allowed_submits integer not null default 1,
+  screen jsonb not null default '[]'::jsonb,
+  questions jsonb not null default '[]'::jsonb,
   publish_year integer,
   publish_month integer,
   publish_day integer,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+alter table public.surveys
+  add column if not exists screen jsonb not null default '[]'::jsonb,
+  add column if not exists questions jsonb not null default '[]'::jsonb;
 
 create table if not exists public.survey_state (
   id uuid primary key default gen_random_uuid(),

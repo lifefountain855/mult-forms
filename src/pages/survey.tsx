@@ -5,8 +5,9 @@ import { motion } from 'motion/react';
 import FormForm, { type FormSubmitData } from '../components/form';
 import UserProfile, { type SurveyData } from '../lib/User';
 import { supabase } from '../lib/supabase';
+import type { SurveyDefinition } from '../lib/surveys';
 
-export default function Survey({survey, route}: any){
+export default function Survey({ survey, route }: { survey: SurveyDefinition; route?: 'screening' | 'start' }) {
     const { link, name, longDescription, author, visible, publishStamp, requiresScreen, allowedSubmits, screen, questions} = survey;
     const location = useLocation();
     const currentRoute = route ?? (location.pathname.endsWith('/screening') ? 'screening' : 'start');
@@ -119,7 +120,7 @@ export default function Survey({survey, route}: any){
         setSubmitSurvey(true);
     };
 
-    const beginButton = "flex p-8 aspect-5/3 rounded-2xl items-center justify-center border-primary-600 bg-primary-700/20";
+    const beginButton = "text-center flex p-8 aspect-5/3 rounded-2xl items-center justify-center border-primary-600 bg-primary-700/20 hover:bg-accent-800";
 
     if (authChecked && !user.id) {
         return <Navigate to="/auth" replace />;

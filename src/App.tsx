@@ -4,10 +4,11 @@ import NotFound from './pages/not-found';
 import Survey from './pages/survey';
 import Home from './pages/home';
 import AuthPage from './pages/auth';
-import allSurveys from './assets/surveys.json';
+import { useEffect, useState } from 'react';
 import { UseFavicon } from 'asappy-web-shared-ui'
+import { loadSurveys, type SurveyDefinition } from './lib/surveys';
 
-function AppRoutes() {
+function AppRoutes({ surveys }: { surveys: SurveyDefinition[] }) {
   const location = useLocation();
 
   const isHome = location.pathname === '/';
@@ -47,16 +48,16 @@ function AppRoutes() {
           className="min-h-screen bg-[var(--color-primary-950)]"
         >
           <Routes location={location}>
-            <Route path="/" element={<Home />} />
+            <Route path="/" element={<Home surveys={surveys} />} />
             <Route path="/auth" element={<AuthPage />} />
-            {allSurveys.filter(survey=>survey.requiresScreen).map((survey) => (
+            {surveys.filter(survey=>survey.requiresScreen).map((survey) => (
               <Route
                 key={`${survey.link}-screening`}
                 path={`${survey.link}/screening`}
                 element={<Survey survey={survey} route="screening" />}
               />
             ))}
-            {allSurveys.map((survey) => (
+            {surveys.map((survey) => (
               <Route
                 key={`${survey.link}-start`}
                 path={`${survey.link}/start`}
@@ -73,10 +74,26 @@ function AppRoutes() {
 
 function App() {
   UseFavicon("#195330")
+  const [surveys, setSurveys] = useState<SurveyDefinition[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    loadSurveys()
+      .then(setSurveys)
+      .catch((loadError: Error) => setError(loadError.message));
+  }, []);
+
+  if (error) {
+    return <div className="flex min-h-screen items-center justify-center p-8 text-red-300">{error}</div>;
+  }
+
+  if (!surveys) {
+    return <div className="flex min-h-screen items-center justify-center p-8 text-primary-300">Loading surveys...</div>;
+  }
 
   return (
     <BrowserRouter>
-      <AppRoutes />
+      <AppRoutes surveys={surveys} />
     </BrowserRouter>
   )
 }

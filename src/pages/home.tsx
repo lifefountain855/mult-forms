@@ -1,10 +1,10 @@
-import allSurveys from '../assets/surveys.json';
 import { Link } from 'react-router-dom'
 import { ArrowUpRight, CalendarDays, LogIn, LogOut } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useEffect, useState } from 'react';
 import UserProfile from '../lib/User';
 import { supabase } from '../lib/supabase';
+import type { SurveyDefinition } from '../lib/surveys';
 
 const cardVariants = {
     initial: {opacity: 0, y: 18},
@@ -16,7 +16,7 @@ const arrowVariants = {
     hover: { x: 4, y: -4, scale:1.1}
 };
 
-export default function Home() {
+export default function Home({ surveys }: { surveys: SurveyDefinition[] }) {
     const [user, setUser] = useState<UserProfile>(new UserProfile());
     const [sessionEmail, setSessionEmail] = useState<string | null>(null);
 
@@ -56,6 +56,15 @@ export default function Home() {
 
     const card1 = "relative flex flex-col gap-3 rounded-2xl border border-primary-500 bg-primary-700/10 p-6 shadow-sm transition-colors duration-300";
     const surveyState = user.surveyData ?? {};
+    const orderedSurveys = [...surveys].sort((left, right) => {
+        if (left.visible !== right.visible) {
+            return left.visible ? -1 : 1;
+        }
+
+        const leftDate = left.publishStamp[2] * 10000 + left.publishStamp[1] * 100 + left.publishStamp[0];
+        const rightDate = right.publishStamp[2] * 10000 + right.publishStamp[1] * 100 + right.publishStamp[0];
+        return rightDate - leftDate;
+    });
 
     return (
         <div className='m-5 mt-10 flex items-center flex-col gap-10'>
@@ -87,7 +96,7 @@ export default function Home() {
             )}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-10 w-3/4 max-w-2xl">
-                {allSurveys.map((survey, index) => (
+                {orderedSurveys.map((survey, index) => (
                     (survey.visible || user.admin) && (
                         <motion.div
                             key={survey.link}
