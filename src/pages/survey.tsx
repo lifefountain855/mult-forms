@@ -188,7 +188,7 @@ export default function Survey({ survey, route }: { survey: SurveyDefinition; ro
                     </div>
                 )}
 
-                {(!requiresScreen || (passedScreen && submitScreen)) && isStartRoute && !submitSurvey && !noMoreAttempts && (
+                {(!requiresScreen || (passedScreen && submitScreen)) && isStartRoute && !noMoreAttempts && (
                     <FormForm schema={questions} onSubmit={handleSurveySubmit} isScreen={false} />
                 )}
 
