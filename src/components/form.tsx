@@ -11,7 +11,7 @@ export interface FormQuestion {
     options?: Record<string, string>;
     allowed?: string[];
     rows?: number;
-    rangeOps:{
+    rangeOps?:{
         min:number,
         max:number,
         step?:number,

@@ -10,6 +10,29 @@ import { useEffect, useState } from 'react';
 import { UseFavicon } from 'asappy-web-shared-ui'
 import { loadSurveys, type SurveyDefinition } from './lib/surveys';
 
+const DEFAULT_SURVEYS: SurveyDefinition[] = [
+  {
+    link: "hi2.3",
+    name: "hi2.3",
+    description: "Market research for a functional chemical resale company focused on students.",
+    longDescription: "Market research for a functional chemical resale company focused on students.",
+    author: "yours truly",
+    visible: true,
+    requiresScreen: false,
+    allowedSubmits: 1,
+    publishStamp: [2, 9, 2026],
+    screen: [],
+    questions: [
+      {
+        id: "q_12",
+        type: "multi",
+        question: "How often do you clean your apartment?",
+        subtypeM: "freq1"
+      }
+    ]
+  }
+];
+
 function AppRoutes({ surveys }: { surveys: SurveyDefinition[] }) {
   const location = useLocation();
 
@@ -85,10 +108,10 @@ function App() {
     loadSurveys()
       .then(setSurveys)
       .catch((loadError: Error) => setError(loadError.message));
-  }, []);
-
-  if (error) {
-    return <div className="flex min-h-screen items-center justify-center p-8 text-red-300">{error}</div>;
+    }, []);
+    
+    if (error) {
+    return <div className="flex min-h-screen items-center justify-center p-8 text-red-300">{error}<br/><br/><br/>This probably means the database isn't online. Sorry.</div>;
   }
 
   if (!surveys) {
