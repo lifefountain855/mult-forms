@@ -330,7 +330,7 @@ export default function FormForm({ schema, onSubmit, isScreen }: DynamicFormProp
                                 />
                             )}
 
-                            {q.type === 'range' && (
+                            {q.type === 'range' && q.rangeOps && (
                                 <SingleRangeSlider 
                                     value={formValues[fieldName] || 0} 
                                     onChange={(newValue:any) => {

@@ -13,24 +13,17 @@ import type { SurveyData } from './lib/User';
 
 const DEFAULT_SURVEYS: SurveyDefinition[] = [
   {
-    link: "hi2.3",
-    name: "hi2.3",
+    link: "test",
+    name: "test",
     description: "Market research for a functional chemical resale company focused on students.",
     longDescription: "Market research for a functional chemical resale company focused on students.",
     author: "yours truly",
     visible: true,
-    requiresScreen: false,
+    requiresScreen: true,
     allowedSubmits: 1,
     publishStamp: [2, 9, 2026],
-    screen: [],
-    questions: [
-      {
-        id: "q_12",
-        type: "multi",
-        question: "How often do you clean your apartment?",
-        subtypeM: "freq1"
-      }
-    ]
+    screen: [{"id": "q_US", "type": "radio", "allowed": ["yes"], "options": {"a": "yes", "f": "no"}, "question": "Do you live in the united states?"}, {"id": "q_IDFL", "type": "dropdown", "allowed": ["id", "fl"], "options": {"ak": "Alaska", "al": "Alabama", "ar": "Arkansas", "az": "Arizona", "ca": "California", "co": "Colorado", "ct": "Connecticut", "de": "Delaware", "fl": "Florida", "ga": "Georgia", "hi": "Hawaii", "ia": "Iowa", "id": "Idaho", "il": "Illinois", "in": "Indiana", "ks": "Kansas", "ky": "Kentucky", "la": "Louisiana", "ma": "Massachusetts", "md": "Maryland", "me": "Maine", "mi": "Michigan", "mn": "Minnesota", "mo": "Missouri", "ms": "Mississippi", "mt": "Montana", "nc": "North Carolina", "nd": "North Dakota", "ne": "Nebraska", "nh": "New Hampshire", "nj": "New Jersey", "nm": "New Mexico", "nv": "Nevada", "ny": "New York", "oh": "Ohio", "ok": "Oklahoma", "or": "Oregon", "pa": "Pennsylvania", "ri": "Rhode Island", "sc": "South Carolina", "sd": "South Dakota", "tn": "Tennessee", "tx": "Texas", "ut": "Utah", "va": "Virginia", "vt": "Vermont", "wa": "Washington", "wi": "Wisconsin", "wv": "West Virginia", "wy": "Wyoming"}, "question": "If yes, what state do you live in?", "dependsOn": {"value": "yes", "questionIndex": 0}}],
+    questions:	[{"id": "q_often", "type": "multi", "question": "How often do you clean your apartment?", "subtypeM": "freq1"}, {"id": "q_7", "type": "multi", "question": "How often do you clean your apartment?", "subtypeM": "freq2"}]
   }
 ];
 
