@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from 'motion/react';
-import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import NotFound from './pages/not-found';
 import Survey from './pages/survey';
 import Home from './pages/home';
@@ -9,6 +9,7 @@ import Account from './pages/account';
 import { useEffect, useState } from 'react';
 import { UseFavicon } from 'asappy-web-shared-ui'
 import { loadSurveys, type SurveyDefinition } from './lib/surveys';
+import type { SurveyData } from './lib/User';
 
 const DEFAULT_SURVEYS: SurveyDefinition[] = [
   {
@@ -33,8 +34,9 @@ const DEFAULT_SURVEYS: SurveyDefinition[] = [
   }
 ];
 
-function AppRoutes({ surveys }: { surveys: SurveyDefinition[] }) {
+function AppRoutes({ surveys, databaseAvailable }: { surveys: SurveyDefinition[]; databaseAvailable: boolean }) {
   const location = useLocation();
+  const [offlineSurveyStates, setOfflineSurveyStates] = useState<Record<string, SurveyData>>({});
 
   const isHome = location.pathname === '/';
   
@@ -73,22 +75,38 @@ function AppRoutes({ surveys }: { surveys: SurveyDefinition[] }) {
           className="min-h-screen bg-[var(--color-primary-950)]"
         >
           <Routes location={location}>
-            <Route path="/" element={<Home surveys={surveys} />} />
-            <Route path="/auth" element={<AuthPage />} />
-            <Route path="/admin/results" element={<AdminPage surveys={surveys} />} />
-            <Route path="/account" element={<Account surveys={surveys} />} />
+            <Route path="/" element={<Home surveys={surveys} databaseAvailable={databaseAvailable} />} />
+            <Route path="/auth" element={databaseAvailable ? <AuthPage /> : <Navigate to="/" replace />} />
+            <Route path="/admin/results" element={databaseAvailable ? <AdminPage surveys={surveys} /> : <Navigate to="/" replace />} />
+            <Route path="/account" element={databaseAvailable ? <Account surveys={surveys} /> : <Navigate to="/" replace />} />
             {surveys.filter(survey=>survey.requiresScreen).map((survey) => (
               <Route
                 key={`${survey.link}-screening`}
                 path={`${survey.link}/screening`}
-                element={<Survey survey={survey} route="screening" />}
+                element={
+                  <Survey
+                    survey={survey}
+                    route="screening"
+                    databaseAvailable={databaseAvailable}
+                    offlineSurveyState={offlineSurveyStates[survey.link]}
+                    onOfflineSurveyStateChange={(state) => setOfflineSurveyStates((current) => ({ ...current, [survey.link]: state }))}
+                  />
+                }
               />
             ))}
             {surveys.map((survey) => (
               <Route
                 key={`${survey.link}-start`}
                 path={`${survey.link}/start`}
-                element={<Survey survey={survey} route="start" />}
+                element={
+                  <Survey
+                    survey={survey}
+                    route="start"
+                    databaseAvailable={databaseAvailable}
+                    offlineSurveyState={offlineSurveyStates[survey.link]}
+                    onOfflineSurveyStateChange={(state) => setOfflineSurveyStates((current) => ({ ...current, [survey.link]: state }))}
+                  />
+                }
               />
             ))}
             <Route path="*" element={<NotFound />} />
@@ -102,17 +120,19 @@ function AppRoutes({ surveys }: { surveys: SurveyDefinition[] }) {
 function App() {
   UseFavicon("#195330")
   const [surveys, setSurveys] = useState<SurveyDefinition[] | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [databaseAvailable, setDatabaseAvailable] = useState(false);
 
   useEffect(() => {
     loadSurveys()
-      .then(setSurveys)
-      .catch((loadError: Error) => setError(loadError.message));
+      .then((loadedSurveys) => {
+        setSurveys(loadedSurveys);
+        setDatabaseAvailable(true);
+      })
+      .catch(() => {
+        setSurveys(DEFAULT_SURVEYS);
+        setDatabaseAvailable(false);
+      });
     }, []);
-    
-    if (error) {
-    return <div className="flex min-h-screen items-center justify-center p-8 text-red-300">{error}<br/><br/><br/>This probably means the database isn't online. Sorry.</div>;
-  }
 
   if (!surveys) {
     return <div className="flex min-h-screen items-center justify-center p-8 text-primary-300">Loading surveys...</div>;
@@ -120,7 +140,7 @@ function App() {
 
   return (
     <BrowserRouter>
-      <AppRoutes surveys={surveys} />
+      <AppRoutes surveys={surveys} databaseAvailable={databaseAvailable} />
     </BrowserRouter>
   )
 }

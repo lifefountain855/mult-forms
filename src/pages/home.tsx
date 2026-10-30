@@ -18,15 +18,19 @@ const arrowVariants = {
     hover: { x: 4, y: -4, scale:1.1}
 };
 
-export default function Home({ surveys }: { surveys: SurveyDefinition[] }) {
+export default function Home({ surveys, databaseAvailable }: { surveys: SurveyDefinition[]; databaseAvailable: boolean }) {
     const [user, setUser] = useState<UserProfile>(new UserProfile());
     const [sessionEmail, setSessionEmail] = useState<string | null>(null);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(databaseAvailable);
     const [error, setError] = useState<string | null>(null);
     const [message, setMessage] = useState<string | null>(null);
 
     useEffect(() => {
         let isMounted = true;
+
+        if (!databaseAvailable) {
+            return () => { isMounted = false; };
+        }
 
         UserProfile.initLoad().then((profile) => {
             if (isMounted) {
@@ -59,7 +63,7 @@ export default function Home({ surveys }: { surveys: SurveyDefinition[] }) {
             isMounted = false;
             authListener.subscription.unsubscribe();
         };
-    }, []);
+    }, [databaseAvailable]);
 
     const handleSignOut = async () => {
         setError(null);
@@ -94,9 +98,14 @@ export default function Home({ surveys }: { surveys: SurveyDefinition[] }) {
             <title>Asappy Surveys</title>
             {message && <Toast message={message} />}
             {error && <Toast message={error} tone="error" />}
+            {!databaseAvailable && (
+                <p className="max-w-2xl text-center text-sm text-primary-400">
+                    Database unavailable. Showing built-in surveys; sign-in and saved responses are disabled.
+                </p>
+            )}
             <div className="flex w-full max-w-2xl items-center justify-between gap-3">
                 <p className="text-5xl text-primary-100">surveys</p>
-                {sessionEmail ? (
+                {databaseAvailable && sessionEmail ? (
                     <>
                     <div className="hidden items-center gap-2 sm:flex">
                         {user.admin && (
@@ -119,7 +128,7 @@ export default function Home({ surveys }: { surveys: SurveyDefinition[] }) {
                     </div>
                     <MobileSidebar onSignOut={handleSignOut} currentPage='home' show={{home:true,admin:user.admin,account:true}}/>
                     </>
-                ) : (
+                ) : databaseAvailable ? (
                     <Link
                         to="/auth"
                         className="inline-flex items-center gap-2 rounded-lg bg-accent-500 px-4 py-2 text-sm font-medium text-primary-950 hover:bg-accent-400"
@@ -127,7 +136,7 @@ export default function Home({ surveys }: { surveys: SurveyDefinition[] }) {
                         <LogIn className="size-4" />
                         Sign in
                     </Link>
-                )}
+                ) : null}
             </div>
 
             {sessionEmail && (

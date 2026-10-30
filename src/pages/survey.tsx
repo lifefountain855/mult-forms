@@ -8,7 +8,19 @@ import { supabase } from '../lib/supabase';
 import type { SurveyDefinition } from '../lib/surveys';
 import Toast from '../components/toast';
 
-export default function Survey({ survey, route }: { survey: SurveyDefinition; route?: 'screening' | 'start' }) {
+export default function Survey({
+    survey,
+    route,
+    databaseAvailable,
+    offlineSurveyState,
+    onOfflineSurveyStateChange,
+}: {
+    survey: SurveyDefinition;
+    route?: 'screening' | 'start';
+    databaseAvailable: boolean;
+    offlineSurveyState?: SurveyData;
+    onOfflineSurveyStateChange: (state: SurveyData) => void;
+}) {
     const { link, name, longDescription, author, visible, publishStamp, requiresScreen, allowedSubmits, screen, questions } = survey;
     const location = useLocation();
     const currentRoute = route ?? (location.pathname.endsWith('/screening') ? 'screening' : 'start');
@@ -18,14 +30,27 @@ export default function Survey({ survey, route }: { survey: SurveyDefinition; ro
     const isStartRoute = currentRoute === 'start';
 
     const [user, setUser] = useState<UserProfile | null>(null);
-    const [authChecked, setAuthChecked] = useState(false);
+    const [authChecked, setAuthChecked] = useState(!databaseAvailable);
     const [profileError, setProfileError] = useState<string | null>(null);
     const [submitLoading, setSubmitLoading] = useState(false);
     const [submitError, setSubmitError] = useState<string | null>(null);
     const [submitMessage, setSubmitMessage] = useState<string | null>(null);
+    const [localSurveyState, setLocalSurveyState] = useState<SurveyData>(offlineSurveyState ?? {
+        id: link,
+        submitted: false,
+        submitTimes: 0,
+        submittedScreen: false,
+        passedScreen: false,
+        screenData: {},
+        data: {},
+    });
 
     useEffect(() => {
         let isMounted = true;
+
+        if (!databaseAvailable) {
+            return () => { isMounted = false; };
+        }
 
         const refreshUser = async () => {
             try {
@@ -74,7 +99,7 @@ export default function Survey({ survey, route }: { survey: SurveyDefinition; ro
             isMounted = false;
             authListener.subscription.unsubscribe();
         };
-    }, []);
+    }, [databaseAvailable]);
 
     // 1. Prevent evaluation while Supabase / Profile loading is pending
     if (!authChecked) {
@@ -86,18 +111,15 @@ export default function Survey({ survey, route }: { survey: SurveyDefinition; ro
     }
 
     // 2. Auth Guard
-    if (!user?.id) {
+    if (databaseAvailable && !user?.id) {
         return <Navigate to="/auth" replace />;
     }
 
-    const surveyState: SurveyData = user.surveyData?.[link] ?? {
-        id: link,
-        submitted: false,
-        submitTimes: 0,
-        submittedScreen: false,
-        passedScreen: false,
-        screenData: {},
-        data: {},
+    const surveyState: SurveyData = user?.surveyData?.[link] ?? localSurveyState;
+    const updateOfflineSurveyState = (partial: Partial<SurveyData>) => {
+        const nextState = { ...surveyState, ...partial };
+        setLocalSurveyState(nextState);
+        onOfflineSurveyStateChange(nextState);
     };
 
     const submitScreen = surveyState.submittedScreen ?? false;
@@ -115,6 +137,16 @@ export default function Survey({ survey, route }: { survey: SurveyDefinition; ro
         };
 
         try {
+            if (!databaseAvailable) {
+                updateOfflineSurveyState({
+                    submittedScreen: true,
+                    passedScreen: !data.isFlagged,
+                    screenData: data.values,
+                });
+                setSubmitMessage('Screening submitted. Responses are not saved while the database is unavailable.');
+                return;
+            }
+
             const profile = await UserProfile.initLoad();
             const saved = await profile.saveSurveyState(link, nextState);
             setUser(new UserProfile(profile.id, profile.admin, {
@@ -133,6 +165,16 @@ export default function Survey({ survey, route }: { survey: SurveyDefinition; ro
         setSubmitLoading(true);
         setSubmitError(null);
         try {
+            if (!databaseAvailable) {
+                updateOfflineSurveyState({
+                    submitted: true,
+                    submitTimes: surveyState.submitTimes + 1,
+                    data: data.values,
+                });
+                setSubmitMessage('Survey submitted. Responses are not saved while the database is unavailable.');
+                return;
+            }
+
             const profile = await UserProfile.initLoad();
             const currentSurvey = profile.surveyData?.[link] ?? {
                 id: link,
