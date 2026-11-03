@@ -2,11 +2,26 @@ import { useEffect, useState } from 'react';
 import { Link, Navigate, useLocation } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { motion } from 'motion/react';
-import FormForm, { type FormSubmitData } from "../components/form"
-import {USER} from "./home"
+import FormForm, { type FormSubmitData } from '../components/form';
+import UserProfile, { type SurveyData } from '../lib/User';
+import { supabase } from '../lib/supabase';
+import type { SurveyDefinition } from '../lib/surveys';
+import Toast from '../components/toast';
 
-export default function Survey({survey, route}: any){
-    const { link, name, longDescription, author, visible, publishStamp, requiresScreen, allowedSubmits, screen, questions} = survey
+export default function Survey({
+    survey,
+    route,
+    databaseAvailable,
+    offlineSurveyState,
+    onOfflineSurveyStateChange,
+}: {
+    survey: SurveyDefinition;
+    route?: 'screening' | 'start';
+    databaseAvailable: boolean;
+    offlineSurveyState?: SurveyData;
+    onOfflineSurveyStateChange: (state: SurveyData) => void;
+}) {
+    const { link, name, longDescription, author, visible, publishStamp, requiresScreen, allowedSubmits, screen, questions } = survey;
     const location = useLocation();
     const currentRoute = route ?? (location.pathname.endsWith('/screening') ? 'screening' : 'start');
     const screeningPath = `/${link}/screening`;
@@ -14,58 +29,194 @@ export default function Survey({survey, route}: any){
     const isScreeningRoute = currentRoute === 'screening';
     const isStartRoute = currentRoute === 'start';
 
-    if (!USER.surveyData){
-        USER.surveyData = {}
-    }
-
-    if (USER.surveyData[link] == undefined || null){
-        USER.surveyData[link] = {id:link,submitted:false,submitTimes:0}
-        USER.save()
-    }
-    const userSurvey = USER.surveyData[link]
-
-    const [submitScreen, setSubmitScreen] = useState(userSurvey.submittedScreen || false)
-    const [submitSurvey, setSubmitSurvey] = useState(userSurvey.submitted || false)
-    const [passedScreen, setPassedScreen] = useState(userSurvey.passedScreen || false)
-    const [noMoreAttempts, setNoMoreAttempts] = useState((userSurvey.submitTimes >= allowedSubmits) || false)
+    const [user, setUser] = useState<UserProfile | null>(null);
+    const [authChecked, setAuthChecked] = useState(!databaseAvailable);
+    const [profileError, setProfileError] = useState<string | null>(null);
+    const [submitLoading, setSubmitLoading] = useState(false);
+    const [submitError, setSubmitError] = useState<string | null>(null);
+    const [submitMessage, setSubmitMessage] = useState<string | null>(null);
+    const [localSurveyState, setLocalSurveyState] = useState<SurveyData>(offlineSurveyState ?? {
+        id: link,
+        submitted: false,
+        submitTimes: 0,
+        submittedScreen: false,
+        passedScreen: false,
+        screenData: {},
+        data: {},
+    });
 
     useEffect(() => {
-        setNoMoreAttempts(userSurvey.submitTimes >= allowedSubmits)
-    }, [allowedSubmits, userSurvey.submitTimes])
+        let isMounted = true;
 
-    const handleScreenSubmit = (data: FormSubmitData) => {
-        console.log('Received payload from form:', data);
-        setSubmitScreen(true)
-        userSurvey.submittedScreen = true;
-        userSurvey.screenData = data;
-        if (data.isFlagged){
-            setPassedScreen(false);
-            userSurvey.passedScreen = false;
-        } else {
-            setPassedScreen(true);
-            userSurvey.passedScreen = true;
+        if (!databaseAvailable) {
+            return () => { isMounted = false; };
         }
-        USER.save()
-    };
 
-    const handleSurveySubmit = (data: FormSubmitData) => {
-        console.log('Received payload from form:', data);
-        setSubmitSurvey(true);
-        userSurvey.submitted = true
-        userSurvey.submitTimes = userSurvey.submitTimes + 1;
-        userSurvey.data = data.values;
-        USER.save()
+        const refreshUser = async () => {
+            try {
+                const profile = await UserProfile.initLoad();
+                if (isMounted) setUser(profile);
+            } catch (loadError) {
+                if (isMounted) setProfileError(loadError instanceof Error ? loadError.message : 'Unable to load your profile.');
+            } finally {
+                if (isMounted) {
+                    setAuthChecked(true);
+                }
+            }
+        };
+
+        supabase.auth.getSession().then(({ data, error: sessionError }) => {
+            if (!isMounted) return;
+            if (sessionError) {
+                setProfileError(`Unable to check your session: ${sessionError.message}`);
+                setAuthChecked(true);
+                return;
+            }
+            if (data.session) {
+                refreshUser();
+            } else {
+                setUser(new UserProfile());
+                setAuthChecked(true);
+            }
+        }).catch(() => {
+            if (isMounted) {
+                setProfileError('Unable to check your session. Please try again.');
+                setAuthChecked(true);
+            }
+        });
+
+        const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+            if (!isMounted) return;
+            if (session) {
+                refreshUser();
+            } else {
+                setUser(new UserProfile());
+                setAuthChecked(true);
+            }
+        });
+
+        return () => {
+            isMounted = false;
+            authListener.subscription.unsubscribe();
+        };
+    }, [databaseAvailable]);
+
+    // 1. Prevent evaluation while Supabase / Profile loading is pending
+    if (!authChecked) {
+        return <div className="flex justify-center pt-20"><title>{`Asappy Surveys - ${name}`}</title>Loading profile...</div>;
     }
 
-    const beginButton = "flex p-8 aspect-5/3 rounded-2xl items-center justify-center border-primary-600 bg-primary-700/20"
+    if (profileError) {
+        return <div className="flex min-h-screen items-center justify-center p-8 text-red-300">{profileError}</div>;
+    }
 
-    if (requiresScreen && isStartRoute && !noMoreAttempts && (!submitScreen || !passedScreen)) {
+    // 2. Auth Guard
+    if (databaseAvailable && !user?.id) {
+        return <Navigate to="/auth" replace />;
+    }
+
+    const surveyState: SurveyData = user?.surveyData?.[link] ?? localSurveyState;
+    const updateOfflineSurveyState = (partial: Partial<SurveyData>) => {
+        const nextState = { ...surveyState, ...partial };
+        setLocalSurveyState(nextState);
+        onOfflineSurveyStateChange(nextState);
+    };
+
+    const submitScreen = surveyState.submittedScreen ?? false;
+    const submitSurvey = surveyState.submitted ?? false;
+    const passedScreen = surveyState.passedScreen ?? false;
+    const noMoreAttempts = (surveyState.submitTimes >= allowedSubmits) || false;
+
+    const handleScreenSubmit = async (data: FormSubmitData) => {
+        setSubmitLoading(true);
+        setSubmitError(null);
+        const nextState = {
+            submittedScreen: true,
+            passedScreen: !data.isFlagged,
+            screenData: data.values,
+        };
+
+        try {
+            if (!databaseAvailable) {
+                updateOfflineSurveyState({
+                    submittedScreen: true,
+                    passedScreen: !data.isFlagged,
+                    screenData: data.values,
+                });
+                setSubmitMessage('Screening submitted. Responses are not saved while the database is unavailable.');
+                return;
+            }
+
+            const profile = await UserProfile.initLoad();
+            const saved = await profile.saveSurveyState(link, nextState);
+            setUser(new UserProfile(profile.id, profile.admin, {
+                ...(profile.surveyData ?? {}),
+                [link]: saved,
+            }));
+            setSubmitMessage('Screening submitted successfully.');
+        } catch (submitError) {
+            setSubmitError(submitError instanceof Error ? submitError.message : 'Unable to save your screening.');
+        } finally {
+            setSubmitLoading(false);
+        }
+    };
+
+    const handleSurveySubmit = async (data: FormSubmitData) => {
+        setSubmitLoading(true);
+        setSubmitError(null);
+        try {
+            if (!databaseAvailable) {
+                updateOfflineSurveyState({
+                    submitted: true,
+                    submitTimes: surveyState.submitTimes + 1,
+                    data: data.values,
+                });
+                setSubmitMessage('Survey submitted. Responses are not saved while the database is unavailable.');
+                return;
+            }
+
+            const profile = await UserProfile.initLoad();
+            const currentSurvey = profile.surveyData?.[link] ?? {
+                id: link,
+                submitted: false,
+                submitTimes: 0,
+                submittedScreen: false,
+                passedScreen: false,
+                screenData: {},
+                data: {},
+            };
+
+            const saved = await profile.saveSurveyState(link, {
+                submitted: true,
+                submitTimes: (currentSurvey.submitTimes ?? 0) + 1,
+                data: data.values,
+            });
+
+            setUser(new UserProfile(profile.id, profile.admin, {
+                ...(profile.surveyData ?? {}),
+                [link]: saved,
+            }));
+            setSubmitMessage('Survey submitted successfully.');
+        } catch (submitError) {
+            setSubmitError(submitError instanceof Error ? submitError.message : 'Unable to save your survey.');
+        } finally {
+            setSubmitLoading(false);
+        }
+    };
+
+    const beginButton = "text-center flex p-8 aspect-5/3 rounded-2xl items-center justify-center border-primary-600 bg-primary-700/20 hover:bg-accent-800";
+
+    // 3. Screening Guard (Only runs AFTER auth and surveyState are fully resolved)
+    if (requiresScreen && isStartRoute && !noMoreAttempts && (!surveyState.submittedScreen || !surveyState.passedScreen)) {
         return <Navigate to={screeningPath} replace />;
     }
 
     return (
         <div className="relative flex flex-col gap-4 pt-15 items-center justify-center py-10 px-8 sm:px-15 md:px-25">
             <title>{`Asappy Surveys - ${name}`}</title>
+            {submitMessage && <Toast message={submitMessage} />}
+            {submitError && <Toast message={submitError} tone="error" />}
+            {submitLoading && <div className="text-sm text-primary-300">Saving your response...</div>}
 
             <motion.div
                 whileHover={{ x: -4 }}
@@ -87,8 +238,8 @@ export default function Survey({survey, route}: any){
             )}
 
             {!noMoreAttempts && (
-                <span className={`text-${userSurvey.submitTimes >= allowedSubmits ? 'red' : 'primary'}-400 -mt-2`}>
-                    Allowed submits: {userSurvey.submitTimes}/{allowedSubmits}
+                <span className={`text-${surveyState.submitTimes >= allowedSubmits ? 'red' : 'primary'}-400 -mt-2`}>
+                    Allowed submits: {surveyState.submitTimes}/{allowedSubmits}
                 </span>
             )}
 
@@ -124,7 +275,7 @@ export default function Survey({survey, route}: any){
                     </div>
                 )}
 
-                {(!requiresScreen || (passedScreen && submitScreen)) && isStartRoute && !submitSurvey && !noMoreAttempts && (
+                {(!requiresScreen || (passedScreen && submitScreen)) && isStartRoute && !noMoreAttempts && (
                     <FormForm schema={questions} onSubmit={handleSurveySubmit} isScreen={false} />
                 )}
 
